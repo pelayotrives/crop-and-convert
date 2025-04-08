@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Crop & Convert to WEBP</title>
+    <link rel="stylesheet" href="popup.css">
+    <!-- We add the Cropper.js library for image cropping -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" integrity="sha512-3gCwBLKNbwYmhz4L6dfMS8bD5t+QmVLKoGp2o0TKfGmZw/uxSmHqYqHFf2YocwtdsRL3Mi9KjcZoPcw7/vRpFw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+    <div class="container">
+        <h1>Crop & Convert to WEBP</h1>
+        <!-- Upload area -->
+        <div id="drop-area">
+            <p>Drag and drop your image here or...</p>
+            <input type="file" id="fileInput" accept="image/jpeg,image/png">
+        </div>
+        <!-- Ratio selector -->
+        <div class="ratio-selector">
+            <label for="aspectRatio">Select crop ratio:</label>
+            <select id="aspectRatio">
+                <option value="1">1:1</option>
+                <option value="1.7777777778">16:9</option>
+            </select>
+        </div>
+        <!-- Image container -->
+        <div class="image-container">
+            <img id="image" style="max-width: 100%;" alt="Image to crop">
+        </div>
+        <!-- Controls -->
+        <div class="controls">
+            <button id="cropButton">Crop & Convert to WEBP</button>
+            <a id="downloadLink" download="image.webp" style="display:none;">Download WEBP</a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" integrity="sha512-49sQvXrtYgHKFImV8aMppU2R9RUnpJtRpAXNXhAdBwTKyZxMw7/n4AnXE5TuoywqUHf3Zxftzqt7S+Ptdi0Nkg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="popup.js"></script>
+</body>
+
+</html>
