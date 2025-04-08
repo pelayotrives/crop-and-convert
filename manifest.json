@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "Crop & Convert to WEBP",
+    "version": "1.0",
+    "description": "Crop (1:1 or 16:9) and convert JPG/PNG images to WEBP with a modern interface.",
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/icon16.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        }
+    },
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
+    "permissions": []
+}
