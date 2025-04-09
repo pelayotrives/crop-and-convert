@@ -18,8 +18,8 @@ function handleFiles(files) {
   selectedFiles = Array.from(files);
   resultsContainer.innerHTML = ""; // Limpiar resultados previos
 
+  // Si se seleccionan varias imágenes se deshabilita el recorte.
   if (selectedFiles.length > 1) {
-    // Si hay múltiples archivos, deshabilitamos recortar y ocultamos la vista previa.
     cropOption.checked = false;
     cropOption.disabled = true;
     aspectRatioSelect.disabled = true;
@@ -27,7 +27,7 @@ function handleFiles(files) {
   } else if (selectedFiles.length === 1) {
     cropOption.disabled = false;
     aspectRatioSelect.disabled = false;
-    // Si la opción de recorte está marcada, mostramos la vista previa.
+    // Mostrar la vista previa SOLO si el checkbox de recorte está checked
     if (cropOption.checked) {
       imageContainer.style.display = 'block';
     } else {
@@ -37,7 +37,7 @@ function handleFiles(files) {
     const reader = new FileReader();
     reader.onload = function(event) {
       imageElement.src = event.target.result;
-      // Si se quiere recortar, iniciar Cropper después de cargar la imagen
+      // Inicializa Cropper solo si se ha marcado recorte
       if (cropOption.checked) {
         imageElement.onload = initializeCropper;
       }
@@ -58,17 +58,17 @@ function initializeCropper() {
   });
 }
 
-// Evento para actualizar la relación (solo afecta si Cropper está activo)
+// Actualizar la relación en Cropper (si está activo)
 aspectRatioSelect.addEventListener('change', () => {
   if (cropper) {
     cropper.setAspectRatio(parseFloat(aspectRatioSelect.value));
   }
 });
 
-// Evento para mostrar u ocultar la vista previa según la opción de recorte
+// Mostrar u ocultar la vista previa según el checkbox de recorte
 cropOption.addEventListener('change', () => {
   if (cropOption.checked) {
-    // Si hay un solo archivo, mostrar la vista previa e inicializar Cropper si la imagen está cargada
+    // Si hay un solo archivo, mostrar la vista previa e inicializar Cropper
     if (selectedFiles.length === 1) {
       imageContainer.style.display = 'block';
       if (imageElement.src) {
@@ -102,46 +102,38 @@ fileInput.addEventListener('change', () => {
   handleFiles(fileInput.files);
 });
 
-// Evento principal: Procesar imágenes
-processButton.addEventListener('click', () => {
-  // Verificar que se haya seleccionado al menos una función
-  if (!cropOption.checked && !convertOption.checked) {
-    alert("Por favor, selecciona al menos una función (recortar o convertir).");
-    return;
-  }
-  
-  // Mostrar el contenedor de progreso y reiniciar
-  progressContainer.style.display = 'block';
-  progressBar.value = 0;
-  progressText.textContent = "0%";
-  resultsContainer.innerHTML = "";
-  
-  // Si hay un solo archivo y se ha seleccionado la opción de recorte, se procesa en modo único
-  if (selectedFiles.length === 1 && cropOption.checked) {
-    processSingleFileWithCropAndConvert();
-  } else {
-    // Caso de múltiples archivos o cuando no se ha seleccionado recorte
-    processMultipleFiles();
-  }
-});
-
-// Función que simula el progreso y procesa un único archivo (con recorte si está seleccionado)
-function processSingleFileWithCropAndConvert() {
+// Función para simular progreso (se actualiza gradualmente hasta cierto porcentaje)
+function simulateProgress(callback, duration = 1000) {
   let progress = 0;
   progressBar.value = progress;
   progressText.textContent = progress + "%";
-  
-  // Simulamos progreso en intervalos
   const interval = setInterval(() => {
     progress += 10;
+    // Llega hasta el 90% durante la simulación; al final se ajusta al 100%
     if (progress > 90) progress = 90;
     progressBar.value = progress;
     progressText.textContent = progress + "%";
-  }, 100);
-  
-  // Simulamos procesamiento que tarda 1 segundo
+  }, duration / 10);
   setTimeout(() => {
     clearInterval(interval);
+    callback();
+  }, duration);
+}
+
+// Función para obtener el MIME type y extensión del archivo original
+function getOriginalFormat(fileType) {
+  if (fileType === "image/jpeg") {
+    return { mime: "image/jpeg", ext: "jpg" };
+  } else if (fileType === "image/png") {
+    return { mime: "image/png", ext: "png" };
+  }
+  // Por defecto, usar PNG
+  return { mime: "image/png", ext: "png" };
+}
+
+// Procesar un único archivo (con recorte si está marcado)
+function processSingleFileWithCropAndConvert() {
+  simulateProgress(() => {
     let canvas;
     if (cropOption.checked && cropper) {
       canvas = cropper.getCroppedCanvas();
@@ -154,15 +146,21 @@ function processSingleFileWithCropAndConvert() {
     }
     
     let outputData;
+    let fileFormat;
+    // Si se ha marcado la opción de conversión a WEBP, usamos esa opción con calidad ajustada.
     if (convertOption.checked) {
-      outputData = canvas.toDataURL("image/webp", 0.92);
+      outputData = canvas.toDataURL("image/webp", 0.6);
+      fileFormat = { ext: "webp" };
     } else {
-      outputData = canvas.toDataURL("image/png");
+      // En caso contrario, se mantiene el formato original del archivo
+      const orig = getOriginalFormat(selectedFiles[0].type);
+      outputData = canvas.toDataURL(orig.mime);
+      fileFormat = orig;
     }
     
     const link = document.createElement('a');
     link.href = outputData;
-    link.download = convertOption.checked ? "imagen.webp" : "imagen.png";
+    link.download = "imagen." + fileFormat.ext;
     link.textContent = "Descargar resultado";
     resultsContainer.appendChild(link);
     
@@ -171,7 +169,7 @@ function processSingleFileWithCropAndConvert() {
   }, 1000);
 }
 
-// Función para procesar múltiples archivos (solo conversión, ya que recorte no está habilitado)
+// Procesar múltiples archivos (solo conversión, ya que el recorte está deshabilitado)
 function processMultipleFiles() {
   let processedCount = 0;
   const total = selectedFiles.length;
@@ -188,16 +186,20 @@ function processMultipleFiles() {
         ctx.drawImage(img, 0, 0);
         
         let outputData;
+        let fileFormat;
         if (convertOption.checked) {
-          outputData = canvas.toDataURL("image/webp", 0.92);
+          outputData = canvas.toDataURL("image/webp", 0.6);
+          fileFormat = { ext: "webp" };
         } else {
-          outputData = canvas.toDataURL("image/png");
+          const orig = getOriginalFormat(file.type);
+          outputData = canvas.toDataURL(orig.mime);
+          fileFormat = orig;
         }
         
         const link = document.createElement('a');
         link.href = outputData;
-        link.download = convertOption.checked ? `imagen_${index+1}.webp` : `imagen_${index+1}.png`;
-        link.textContent = `Descargar imagen ${index+1}`;
+        link.download = "imagen_" + (index + 1) + "." + fileFormat.ext;
+        link.textContent = "Descargar imagen " + (index + 1);
         resultsContainer.appendChild(link);
         
         processedCount++;
@@ -210,3 +212,26 @@ function processMultipleFiles() {
     reader.readAsDataURL(file);
   });
 }
+
+// Evento principal: Procesar imágenes
+processButton.addEventListener('click', () => {
+  // Verificar que al menos una función esté seleccionada
+  if (!cropOption.checked && !convertOption.checked) {
+    alert("Por favor, selecciona al menos una función (recortar o convertir).");
+    return;
+  }
+  
+  // Mostrar el contenedor de progreso y reiniciar valores
+  progressContainer.style.display = 'block';
+  progressBar.value = 0;
+  progressText.textContent = "0%";
+  resultsContainer.innerHTML = "";
+  
+  // Modo único: si hay un solo archivo y se ha seleccionado el recorte, se procesa con recorte.
+  // De lo contrario, se procesa en modo lote (conversión sin recorte)
+  if (selectedFiles.length === 1 && cropOption.checked) {
+    processSingleFileWithCropAndConvert();
+  } else {
+    processMultipleFiles();
+  }
+});
