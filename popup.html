@@ -1,42 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Crop & Convert to WEBP</title>
-    <link rel="stylesheet" href="popup.css">
-    <link rel="stylesheet" href="lib/cropper.min.css">
+  <meta charset="UTF-8">
+  <title>Crop & Convert to WEBP</title>
+  <link rel="stylesheet" href="popup.css">
+  <!-- Incluimos los archivos locales de Cropper -->
+  <link rel="stylesheet" href="lib/cropper.min.css">
 </head>
-
 <body>
-    <div class="container">
-        <h1>Crop & Convert to WEBP</h1>
-        <!-- Upload area -->
-        <div id="drop-area">
-            <p>Drag and drop your image here or...</p>
-            <input type="file" id="fileInput" accept="image/jpeg,image/png">
-        </div>
-        <!-- Ratio selector -->
-        <div class="ratio-selector">
-            <label for="aspectRatio">Select crop ratio:</label>
-            <select id="aspectRatio">
-                <option value="1">1:1</option>
-                <option value="1.7777777778">16:9</option>
-            </select>
-        </div>
-        <!-- Image container -->
-        <div class="image-container">
-            <img id="image" style="max-width: 100%;" alt="Image to crop">
-        </div>
-        <!-- Controls -->
-        <div class="controls">
-            <button id="cropButton">Crop & Convert to WEBP</button>
-            <a id="downloadLink" download="image.webp" style="display:none;">Download WEBP</a>
-        </div>
+  <div class="container">
+    <h1>Extensión: Crop & Convert</h1>
+
+    <!-- Área para cargar imagen(es) -->
+    <div id="drop-area">
+      <p>Arrastra y suelta tus imagen(es) aquí o</p>
+      <input type="file" id="fileInput" accept="image/jpeg,image/png" multiple>
     </div>
 
-    <script src="lib/cropper.min.js"></script>
-    <script src="popup.js"></script>
-</body>
+    <!-- Opciones para seleccionar funciones -->
+    <div class="options">
+      <label>
+        <input type="checkbox" id="cropOption">
+        Recortar imagen (1:1 o 16:9)
+      </label>
+      <select id="aspectRatio">
+        <option value="1">1:1</option>
+        <option value="1.7777777778">16:9</option>
+      </select>
+      <br>
+      <label>
+        <input type="checkbox" id="convertOption" checked>
+        Convertir a WEBP
+      </label>
+    </div>
 
+    <!-- Contenedor para la imagen (solo visible en caso de un archivo único) -->
+    <div class="image-container" id="imageContainer">
+      <img id="image" style="max-width:100%;" alt="Imagen a recortar">
+    </div>
+
+    <!-- Botón para iniciar el procesamiento -->
+    <div class="controls">
+      <button id="processButton">Procesar</button>
+    </div>
+
+    <!-- Área de progreso -->
+    <div id="progressContainer" style="display: none;">
+      <p>Progreso: <span id="progressText">0%</span></p>
+      <progress id="progressBar" value="0" max="100"></progress>
+    </div>
+
+    <!-- Contenedor de resultados (enlaces de descarga) -->
+    <div id="resultsContainer"></div>
+  </div>
+
+  <script src="lib/cropper.min.js"></script>
+  <script src="popup.js"></script>
+</body>
 </html>
