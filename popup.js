@@ -149,7 +149,7 @@ function processSingleFileWithCropAndConvert() {
     let fileFormat;
     // Si se ha marcado la opción de conversión a WEBP, usamos esa opción con calidad ajustada.
     if (convertOption.checked) {
-      outputData = canvas.toDataURL("image/webp", 0.6);
+      outputData = canvas.toDataURL("image/webp", 0.25);
       fileFormat = { ext: "webp" };
     } else {
       // En caso contrario, se mantiene el formato original del archivo
