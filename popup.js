@@ -13,7 +13,7 @@ const progressBar = document.getElementById('progressBar');
 const progressText = document.getElementById('progressText');
 const resultsContainer = document.getElementById('resultsContainer');
 
-// Función para manejar la selección de archivos
+// Maneja la selección de archivos
 function handleFiles(files) {
   selectedFiles = Array.from(files);
   resultsContainer.innerHTML = ""; // Limpiar resultados previos
@@ -27,7 +27,7 @@ function handleFiles(files) {
   } else if (selectedFiles.length === 1) {
     cropOption.disabled = false;
     aspectRatioSelect.disabled = false;
-    // Mostrar la vista previa SOLO si el checkbox de recorte está checked
+    // Muestra la vista previa solo si se ha marcado la opción de recorte
     if (cropOption.checked) {
       imageContainer.style.display = 'block';
     } else {
@@ -37,7 +37,7 @@ function handleFiles(files) {
     const reader = new FileReader();
     reader.onload = function(event) {
       imageElement.src = event.target.result;
-      // Inicializa Cropper solo si se ha marcado recorte
+      // Si ya está marcado recortar, inicializa el Cropper
       if (cropOption.checked) {
         imageElement.onload = initializeCropper;
       }
@@ -46,7 +46,7 @@ function handleFiles(files) {
   }
 }
 
-// Inicializar Cropper con la relación seleccionada
+// Inicializa Cropper con la relación seleccionada
 function initializeCropper() {
   if (cropper) {
     cropper.destroy();
@@ -58,20 +58,21 @@ function initializeCropper() {
   });
 }
 
-// Actualizar la relación en Cropper (si está activo)
+// Actualiza la relación en Cropper (si está activo)
 aspectRatioSelect.addEventListener('change', () => {
   if (cropper) {
     cropper.setAspectRatio(parseFloat(aspectRatioSelect.value));
   }
 });
 
-// Mostrar u ocultar la vista previa según el checkbox de recorte
+// Listener para mostrar u ocultar la vista previa según el checkbox de recorte
 cropOption.addEventListener('change', () => {
   if (cropOption.checked) {
     // Si hay un solo archivo, mostrar la vista previa e inicializar Cropper
     if (selectedFiles.length === 1) {
       imageContainer.style.display = 'block';
-      if (imageElement.src) {
+      // Forzar inicialización si aún no existe
+      if (!cropper && imageElement.src) {
         initializeCropper();
       }
     }
@@ -84,7 +85,7 @@ cropOption.addEventListener('change', () => {
   }
 });
 
-// Eventos para drag & drop
+// Eventos de drag & drop
 dropArea.addEventListener('dragover', (e) => {
   e.preventDefault();
   dropArea.classList.add('active');
@@ -102,14 +103,13 @@ fileInput.addEventListener('change', () => {
   handleFiles(fileInput.files);
 });
 
-// Función para simular progreso (se actualiza gradualmente hasta cierto porcentaje)
+// Función para simular el progreso y luego ejecutar el callback
 function simulateProgress(callback, duration = 1000) {
   let progress = 0;
   progressBar.value = progress;
   progressText.textContent = progress + "%";
   const interval = setInterval(() => {
     progress += 10;
-    // Llega hasta el 90% durante la simulación; al final se ajusta al 100%
     if (progress > 90) progress = 90;
     progressBar.value = progress;
     progressText.textContent = progress + "%";
@@ -120,19 +120,25 @@ function simulateProgress(callback, duration = 1000) {
   }, duration);
 }
 
-// Función para obtener el MIME type y extensión del archivo original
+// Obtiene el formato (MIME y extensión) del archivo original
 function getOriginalFormat(fileType) {
   if (fileType === "image/jpeg") {
     return { mime: "image/jpeg", ext: "jpg" };
   } else if (fileType === "image/png") {
     return { mime: "image/png", ext: "png" };
   }
-  // Por defecto, usar PNG
   return { mime: "image/png", ext: "png" };
 }
 
-// Procesar un único archivo (con recorte si está marcado)
+// Procesa un único archivo (con recorte si está marcado)
 function processSingleFileWithCropAndConvert() {
+  // Si se ha marcado recortar pero no hay Cropper aún, se fuerza su inicialización y se reintenta luego
+  if (cropOption.checked && !cropper) {
+    initializeCropper();
+    setTimeout(processSingleFileWithCropAndConvert, 300);
+    return;
+  }
+
   simulateProgress(() => {
     let canvas;
     if (cropOption.checked && cropper) {
@@ -147,12 +153,10 @@ function processSingleFileWithCropAndConvert() {
     
     let outputData;
     let fileFormat;
-    // Si se ha marcado la opción de conversión a WEBP, usamos esa opción con calidad ajustada.
     if (convertOption.checked) {
       outputData = canvas.toDataURL("image/webp", 0.25);
       fileFormat = { ext: "webp" };
     } else {
-      // En caso contrario, se mantiene el formato original del archivo
       const orig = getOriginalFormat(selectedFiles[0].type);
       outputData = canvas.toDataURL(orig.mime);
       fileFormat = orig;
@@ -169,7 +173,7 @@ function processSingleFileWithCropAndConvert() {
   }, 1000);
 }
 
-// Procesar múltiples archivos (solo conversión, ya que el recorte está deshabilitado)
+// Procesa múltiples archivos (solo conversión, ya que recorte está deshabilitado)
 function processMultipleFiles() {
   let processedCount = 0;
   const total = selectedFiles.length;
@@ -215,20 +219,16 @@ function processMultipleFiles() {
 
 // Evento principal: Procesar imágenes
 processButton.addEventListener('click', () => {
-  // Verificar que al menos una función esté seleccionada
   if (!cropOption.checked && !convertOption.checked) {
     alert("Por favor, selecciona al menos una función (recortar o convertir).");
     return;
   }
   
-  // Mostrar el contenedor de progreso y reiniciar valores
   progressContainer.style.display = 'block';
   progressBar.value = 0;
   progressText.textContent = "0%";
   resultsContainer.innerHTML = "";
   
-  // Modo único: si hay un solo archivo y se ha seleccionado el recorte, se procesa con recorte.
-  // De lo contrario, se procesa en modo lote (conversión sin recorte)
   if (selectedFiles.length === 1 && cropOption.checked) {
     processSingleFileWithCropAndConvert();
   } else {
