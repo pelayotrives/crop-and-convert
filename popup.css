@@ -2,7 +2,7 @@
 body {
   font-family: Arial, sans-serif;
   margin: 10px;
-  width: 400px;
+  width: 350px;
 }
 
 /* Container for centering content */
@@ -32,6 +32,29 @@ body {
 }
 
 /* Options section with controls for crop and convert */
+#cropOptionContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#cropOptionContainer,
+#cropOptionContainer select {
+  width: 100%;
+}
+
+.label-flex {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+
+.label-flex p {
+  margin: 0;
+}
+
 .options {
   margin-bottom: 10px;
   padding: 24px;
@@ -126,11 +149,4 @@ progress {
   padding: 10px;
   border: 1px solid #eee;
   border-radius: 4px;
-}
-
-/* First option container layout */
-.first-opt {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }

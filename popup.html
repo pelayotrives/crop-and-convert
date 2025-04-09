@@ -23,21 +23,21 @@
     <!-- Processing options - crop and convert checkboxes -->
     <div class="options">
       <!-- Crop options with aspect ratio selection -->
-      <div class="first-opt">
-        <label>
+      <div id="cropOptionContainer">
+        <label class="label-flex">
           <input type="checkbox" id="cropOption">
-          Recortar imagen (1:1 o 16:9)
+          <p>Recortar imagen (1:1 o 16:9)</p>
         </label>
         <select id="aspectRatio">
-          <option value="1">1:1</option>
-          <option value="1.7777777778">16:9</option>
+          <option value="1">Formato cuadrado (Ratio 1:1)</option>
+          <option value="1.7777777778">Formato horizontal (16:9)</option>
         </select>
       </div>
       <br>
       <!-- Convert to WEBP option (checked by default) -->
-      <label>
+      <label class="label-flex">
         <input type="checkbox" id="convertOption" checked>
-        Convertir a WEBP
+        <p>Convertir a WEBP</p>
       </label>
     </div>
 

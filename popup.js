@@ -37,7 +37,7 @@ function handleFiles(files) {
   resultsContainer.innerHTML = "";
 
   // Update drop area with file information
-  if (selectedFiles.length > 0) {
+  if (selectedFiles && selectedFiles.length > 0) {
     let fileNamesHtml = "<p><strong>Archivos seleccionados:</strong></p>";
     if (selectedFiles.length <= 3) {
       fileNamesHtml += '<ul style="text-align: left; margin-top: 5px;">';
