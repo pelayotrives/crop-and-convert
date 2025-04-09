@@ -38,7 +38,7 @@ function handleFiles(files) {
 
   // Update drop area with file information
   if (selectedFiles.length > 0) {
-    let fileNamesHtml = "<p><strong>Selected files:</strong></p>";
+    let fileNamesHtml = "<p><strong>Archivos seleccionados:</strong></p>";
     if (selectedFiles.length <= 3) {
       fileNamesHtml += '<ul style="text-align: left; margin-top: 5px;">';
       selectedFiles.forEach((file) => {
@@ -54,7 +54,7 @@ function handleFiles(files) {
 
     // Add reset button
     const resetButton = document.createElement("button");
-    resetButton.textContent = "Select different files";
+    resetButton.textContent = "Seleccionar archivos diferentes";
     resetButton.style.marginTop = "10px";
     resetButton.onclick = resetDropArea;
     dropArea.appendChild(resetButton);
@@ -211,7 +211,7 @@ function processCanvasResult(canvas) {
   const link = document.createElement("a");
   link.href = outputData;
   link.download = "image." + fileFormat.ext;
-  link.textContent = "Download result";
+  link.textContent = "Descargar resultado";
   resultsContainer.appendChild(link);
 
   // Complete progress
@@ -306,7 +306,7 @@ function processMultipleFiles() {
         const link = document.createElement("a");
         link.href = outputData;
         link.download = "image_" + (index + 1) + "." + fileFormat.ext;
-        link.textContent = "Download image " + (index + 1);
+        link.textContent = "Descargar imagen " + (index + 1);
         resultsContainer.appendChild(link);
 
         // Update progress

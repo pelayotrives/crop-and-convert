@@ -5,22 +5,24 @@
   <meta charset="UTF-8">
   <title>Crop & Convert to WEBP</title>
   <link rel="stylesheet" href="popup.css">
-  <!-- Incluimos los archivos locales de Cropper -->
+  <!-- Include Cropper.js local files -->
   <link rel="stylesheet" href="lib/cropper.min.css">
 </head>
 
 <body>
+  <!-- Main container -->
   <div class="container">
     <h1>✂️ Crop & Convert 📸</h1>
 
-    <!-- Área para cargar imagen(es) -->
+    <!-- Image upload area - handles drag and drop or file input selection -->
     <div id="drop-area">
       <p>Arrastra y suelta tus imagen(es) aquí o</p>
       <input type="file" id="fileInput" accept="image/jpeg,image/png" multiple>
     </div>
 
-    <!-- Opciones para seleccionar funciones -->
+    <!-- Processing options - crop and convert checkboxes -->
     <div class="options">
+      <!-- Crop options with aspect ratio selection -->
       <div class="first-opt">
         <label>
           <input type="checkbox" id="cropOption">
@@ -32,32 +34,34 @@
         </select>
       </div>
       <br>
+      <!-- Convert to WEBP option (checked by default) -->
       <label>
         <input type="checkbox" id="convertOption" checked>
         Convertir a WEBP
       </label>
     </div>
 
-    <!-- Botón para iniciar el procesamiento -->
+    <!-- Process button controls -->
     <div class="controls">
       <button id="processButton">Procesar</button>
     </div>
 
-    <!-- Área de progreso -->
+    <!-- Progress bar (hidden by default) -->
     <div id="progressContainer" style="display: none;">
       <p>Progreso: <span id="progressText">0%</span></p>
       <progress id="progressBar" value="0" max="100"></progress>
     </div>
 
-    <!-- Contenedor de resultados (enlaces de descarga) -->
+    <!-- Results container for download links -->
     <div id="resultsContainer"></div>
 
-    <!-- Contenedor para la imagen (solo visible en caso de un archivo único) -->
+    <!-- Image preview container (only visible for single files with crop enabled) -->
     <div class="image-container" id="imageContainer">
       <img id="image" style="max-width:100%;" alt="Imagen a recortar">
     </div>
   </div>
 
+  <!-- JavaScript dependencies -->
   <script src="lib/cropper.min.js"></script>
   <script src="popup.js"></script>
 </body>

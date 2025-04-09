@@ -1,77 +1,88 @@
+/* Basic body styling for the popup */
 body {
   font-family: Arial, sans-serif;
   margin: 10px;
   width: 400px;
 }
 
+/* Container for centering content */
 .container {
   text-align: center;
 }
 
+/* Drag and drop area styling with dashed border */
 #drop-area {
   border: 2px dashed #ccc;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 20px;
   margin-bottom: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
+/* Active state for drag and drop area (when dragging over) */
 #drop-area.active {
   border-color: #4CAF50;
   background-color: rgba(76, 175, 80, 0.1);
 }
 
+/* File input button spacing */
 #fileInput {
   margin-top: 10px;
 }
 
+/* Options section with controls for crop and convert */
 .options {
   margin-bottom: 10px;
   padding: 24px;
   background-color: #ECECEC;
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
+/* Image container for preview (hidden by default) */
 .image-container {
   max-height: 300px;
   overflow: hidden;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   margin: 20px 0;
   display: none;
-  ;
 }
 
+/* Control buttons styling */
 .controls button {
   padding: 12px 24px;
   margin-bottom: 10px;
 }
 
+/* Main process button styling */
 #processButton {
   background-color: #686868;
   margin-top: 12px;
   color: white;
   border: none;
-  border-radius: 2px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
+/* Hover state for process button */
 #processButton:hover {
   background-color: #a8a8a8;
 }
 
+/* Progress bar styling */
 progress {
   width: 100%;
   height: 20px;
 }
 
+/* Results container for download links */
 #resultsContainer {
   margin: 15px 0;
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 2px dashed #ccc;
   min-height: 50px;
   transition: all 0.3s ease;
@@ -81,38 +92,43 @@ progress {
   justify-content: center;
 }
 
+/* Placeholder text for empty results container */
 #resultsContainer:empty::before {
   content: "Aquí aparecerán tus enlaces de descarga";
   color: #888;
   font-style: italic;
 }
 
+/* Styling for download links */
 #resultsContainer a {
   display: block;
   width: 80%;
   margin: 8px 0;
-  padding: 10px;
-  background: #4CAF50;
+  padding: 16px;
+  background: #0184ff;
   color: #fff;
   text-decoration: none;
-  border-radius: 5px;
+  border-radius: 4px;
   text-align: center;
   transition: background-color 0.2s;
 }
 
+/* Hover state for download links */
 #resultsContainer a:hover {
-  background: #3e8e41;
+  background: #2993f7;
 }
 
+/* Additional image container styling */
 .image-container {
   max-height: 300px;
   overflow: auto;
   margin: 20px 0;
   padding: 10px;
   border: 1px solid #eee;
-  border-radius: 5px;
+  border-radius: 4px;
 }
 
+/* First option container layout */
 .first-opt {
   display: flex;
   flex-direction: column;
