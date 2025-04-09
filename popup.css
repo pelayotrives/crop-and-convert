@@ -14,6 +14,16 @@ body {
   padding: 20px;
   margin-bottom: 10px;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#drop-area.active {
+  border-color: #4CAF50;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+#fileInput {
+  margin-top: 10px;
 }
 
 .options {
@@ -42,6 +52,7 @@ body {
 
 #processButton {
   background-color: #686868;
+  margin-top: 12px;
   color: white;
   border: none;
   border-radius: 2px;
@@ -57,14 +68,49 @@ progress {
   height: 20px;
 }
 
+#resultsContainer {
+  margin: 15px 0;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px dashed #ccc;
+  min-height: 50px;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#resultsContainer:empty::before {
+  content: "Aquí aparecerán tus enlaces de descarga";
+  color: #888;
+  font-style: italic;
+}
+
 #resultsContainer a {
   display: block;
-  margin: 5px 0;
-  padding: 5px;
+  width: 80%;
+  margin: 8px 0;
+  padding: 10px;
   background: #4CAF50;
   color: #fff;
   text-decoration: none;
-  border-radius: 3px;
+  border-radius: 5px;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+#resultsContainer a:hover {
+  background: #3e8e41;
+}
+
+.image-container {
+  max-height: 300px;
+  overflow: auto;
+  margin: 20px 0;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 5px;
 }
 
 .first-opt {

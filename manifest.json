@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Crop & Convert to WEBP",
-    "version": "1.0",
+    "version": "1.1.0",
     "description": "Permite recortar (1:1 o 16:9) y/o convertir imágenes JPG/PNG a WEBP. Las funciones son independientes y admite procesamiento en lote.",
     "action": {
         "default_popup": "popup.html",
