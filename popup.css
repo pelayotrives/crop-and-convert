@@ -18,17 +18,32 @@ body {
   
   .options {
     margin-bottom: 10px;
+    padding: 24px;
+    background-color: #ECECEC;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
   }
   
   .image-container {
     max-height: 300px;
     overflow: hidden;
     margin-bottom: 10px;
+    margin: 20px 0;;
   }
   
   .controls button {
-    padding: 10px 20px;
+    padding: 12px 24px;
     margin-bottom: 10px;
+  }
+
+  #processButton {
+    background-color: #686868;
+    color: white;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
   }
   
   progress {
@@ -44,4 +59,10 @@ body {
     color: #fff;
     text-decoration: none;
     border-radius: 3px;
+  }
+
+  .first-opt {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }

@@ -9,7 +9,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Extensión: Crop & Convert</h1>
+    <h1>✂️ Crop & Convert 📸</h1>
 
     <!-- Área para cargar imagen(es) -->
     <div id="drop-area">
@@ -19,14 +19,16 @@
 
     <!-- Opciones para seleccionar funciones -->
     <div class="options">
-      <label>
-        <input type="checkbox" id="cropOption">
-        Recortar imagen (1:1 o 16:9)
-      </label>
-      <select id="aspectRatio">
-        <option value="1">1:1</option>
-        <option value="1.7777777778">16:9</option>
-      </select>
+      <div class="first-opt">
+        <label>
+          <input type="checkbox" id="cropOption">
+          Recortar imagen (1:1 o 16:9)
+        </label>
+        <select id="aspectRatio">
+          <option value="1">1:1</option>
+          <option value="1.7777777778">16:9</option>
+        </select>
+      </div>
       <br>
       <label>
         <input type="checkbox" id="convertOption" checked>
