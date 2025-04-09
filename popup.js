@@ -1,23 +1,23 @@
 let cropper = null;
 let selectedFiles = [];
-const fileInput = document.getElementById('fileInput');
-const dropArea = document.getElementById('drop-area');
-const imageElement = document.getElementById('image');
-const imageContainer = document.getElementById('imageContainer');
-const aspectRatioSelect = document.getElementById('aspectRatio');
-const cropOption = document.getElementById('cropOption');
-const convertOption = document.getElementById('convertOption');
-const processButton = document.getElementById('processButton');
-const progressContainer = document.getElementById('progressContainer');
-const progressBar = document.getElementById('progressBar');
-const progressText = document.getElementById('progressText');
-const resultsContainer = document.getElementById('resultsContainer');
+const fileInput = document.getElementById("fileInput");
+const dropArea = document.getElementById("drop-area");
+const imageElement = document.getElementById("image");
+const imageContainer = document.getElementById("imageContainer");
+const aspectRatioSelect = document.getElementById("aspectRatio");
+const cropOption = document.getElementById("cropOption");
+const convertOption = document.getElementById("convertOption");
+const processButton = document.getElementById("processButton");
+const progressContainer = document.getElementById("progressContainer");
+const progressBar = document.getElementById("progressBar");
+const progressText = document.getElementById("progressText");
+const resultsContainer = document.getElementById("resultsContainer");
 
 /**
  * Processes the provided files for cropping or preview.
  *
  * If multiple files are provided, disables cropping options and hides the image preview.
- * If a single file is provided, enables cropping options, displays the image container, 
+ * If a single file is provided, enables cropping options, displays the image container,
  * and loads the file into the image element using a FileReader. Once the image is loaded,
  * the initializeCropper function is called.
  *
@@ -30,14 +30,14 @@ function handleFiles(files) {
     cropOption.checked = false;
     cropOption.disabled = true;
     aspectRatioSelect.disabled = true;
-    imageContainer.style.display = 'none';
+    imageContainer.style.display = "none";
   } else if (selectedFiles.length === 1) {
     cropOption.disabled = false;
     aspectRatioSelect.disabled = false;
-    imageContainer.style.display = 'block';
+    imageContainer.style.display = "block";
     const file = selectedFiles[0];
     const reader = new FileReader();
-    reader.onload = function(event) {
+    reader.onload = function (event) {
       imageElement.src = event.target.result;
       imageElement.onload = initializeCropper;
     };
@@ -63,44 +63,44 @@ function initializeCropper() {
   const ratio = parseFloat(aspectRatioSelect.value);
   cropper = new Cropper(imageElement, {
     aspectRatio: ratio,
-    viewMode: 1
+    viewMode: 1,
   });
 }
 
-dropArea.addEventListener('dragover', (e) => {
+dropArea.addEventListener("dragover", (e) => {
   e.preventDefault();
-  dropArea.classList.add('active');
+  dropArea.classList.add("active");
 });
-dropArea.addEventListener('dragleave', (e) => {
+dropArea.addEventListener("dragleave", (e) => {
   e.preventDefault();
-  dropArea.classList.remove('active');
+  dropArea.classList.remove("active");
 });
-dropArea.addEventListener('drop', (e) => {
+dropArea.addEventListener("drop", (e) => {
   e.preventDefault();
-  dropArea.classList.remove('active');
+  dropArea.classList.remove("active");
   handleFiles(e.dataTransfer.files);
 });
-fileInput.addEventListener('change', () => {
+fileInput.addEventListener("change", () => {
   handleFiles(fileInput.files);
 });
 
-aspectRatioSelect.addEventListener('change', () => {
+aspectRatioSelect.addEventListener("change", () => {
   if (cropper) {
     cropper.setAspectRatio(parseFloat(aspectRatioSelect.value));
   }
 });
 
-processButton.addEventListener('click', () => {
+processButton.addEventListener("click", () => {
   if (!cropOption.checked && !convertOption.checked) {
     alert("Por favor, selecciona al menos una función (recortar o convertir).");
     return;
   }
-  
-  progressContainer.style.display = 'block';
+
+  progressContainer.style.display = "block";
   progressBar.value = 0;
   progressText.textContent = "0%";
   resultsContainer.innerHTML = "";
-  
+
   if (selectedFiles.length === 1 && cropOption.checked) {
     processSingleFileWithCropAndConvert();
   } else {
@@ -111,7 +111,7 @@ processButton.addEventListener('click', () => {
 /**
  * Processes a single file by optionally cropping and converting its image.
  *
- * If cropping is enabled (when cropOption is checked and a cropper instance is available), 
+ * If cropping is enabled (when cropOption is checked and a cropper instance is available),
  * the function extracts a cropped region of the image using the cropper and creates a canvas from it.
  * Otherwise, a new canvas is created and the full image is drawn on it.
  *
@@ -136,13 +136,13 @@ function processSingleFileWithCropAndConvert() {
   if (cropOption.checked && cropper) {
     canvas = cropper.getCroppedCanvas();
   } else {
-    canvas = document.createElement('canvas');
+    canvas = document.createElement("canvas");
     canvas.width = imageElement.naturalWidth;
     canvas.height = imageElement.naturalHeight;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     ctx.drawImage(imageElement, 0, 0);
   }
-  
+
   let outputData;
 
   if (convertOption.checked) {
@@ -150,13 +150,13 @@ function processSingleFileWithCropAndConvert() {
   } else {
     outputData = canvas.toDataURL("image/png");
   }
-  
-  const link = document.createElement('a');
+
+  const link = document.createElement("a");
   link.href = outputData;
   link.download = convertOption.checked ? "imagen.webp" : "imagen.png";
   link.textContent = "Descargar resultado";
   resultsContainer.appendChild(link);
-  
+
   progressBar.value = 100;
   progressText.textContent = "100%";
 }
@@ -180,31 +180,33 @@ function processSingleFileWithCropAndConvert() {
 function processMultipleFiles() {
   let processedCount = 0;
   const total = selectedFiles.length;
-  
+
   selectedFiles.forEach((file, index) => {
     const reader = new FileReader();
-    reader.onload = function(event) {
+    reader.onload = function (event) {
       const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement('canvas');
+      img.onload = function () {
+        const canvas = document.createElement("canvas");
         canvas.width = img.naturalWidth;
         canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0);
-        
+
         let outputData;
         if (convertOption.checked) {
           outputData = canvas.toDataURL("image/webp", 0.92);
         } else {
           outputData = canvas.toDataURL("image/png");
         }
-        
-        const link = document.createElement('a');
+
+        const link = document.createElement("a");
         link.href = outputData;
-        link.download = convertOption.checked ? `imagen_${index+1}.webp` : `imagen_${index+1}.png`;
-        link.textContent = `Descargar imagen ${index+1}`;
+        link.download = convertOption.checked
+          ? `imagen_${index + 1}.webp`
+          : `imagen_${index + 1}.png`;
+        link.textContent = `Descargar imagen ${index + 1}`;
         resultsContainer.appendChild(link);
-        
+
         processedCount++;
         let percent = Math.round((processedCount / total) * 100);
         progressBar.value = percent;

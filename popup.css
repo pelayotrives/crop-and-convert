@@ -1,68 +1,69 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 10px;
-    width: 400px;
-  }
-  
-  .container {
-    text-align: center;
-  }
-  
-  #drop-area {
-    border: 2px dashed #ccc;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 10px;
-    cursor: pointer;
-  }
-  
-  .options {
-    margin-bottom: 10px;
-    padding: 24px;
-    background-color: #ECECEC;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .image-container {
-    max-height: 300px;
-    overflow: hidden;
-    margin-bottom: 10px;
-    margin: 20px 0;;
-  }
-  
-  .controls button {
-    padding: 12px 24px;
-    margin-bottom: 10px;
-  }
+  font-family: Arial, sans-serif;
+  margin: 10px;
+  width: 400px;
+}
 
-  #processButton {
-    background-color: #686868;
-    color: white;
-    border: none;
-    border-radius: 2px;
-    cursor: pointer;
-  }
-  
-  progress {
-    width: 100%;
-    height: 20px;
-  }
-  
-  #resultsContainer a {
-    display: block;
-    margin: 5px 0;
-    padding: 5px;
-    background: #4CAF50;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 3px;
-  }
+.container {
+  text-align: center;
+}
 
-  .first-opt {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
+#drop-area {
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.options {
+  margin-bottom: 10px;
+  padding: 24px;
+  background-color: #ECECEC;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.image-container {
+  max-height: 300px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  margin: 20px 0;
+  ;
+}
+
+.controls button {
+  padding: 12px 24px;
+  margin-bottom: 10px;
+}
+
+#processButton {
+  background-color: #686868;
+  color: white;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+progress {
+  width: 100%;
+  height: 20px;
+}
+
+#resultsContainer a {
+  display: block;
+  margin: 5px 0;
+  padding: 5px;
+  background: #4CAF50;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 3px;
+}
+
+.first-opt {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
