@@ -188,7 +188,7 @@ function getOriginalFormat(fileType) {
 /**
  * Processes the given canvas by converting its content into an image data URL.
  *
- * Depending on whether the convertOption checkbox is checked, this function either converts the canvas image to WEBP format with a quality of 0.25 or retains the original image format. It then creates a download link for the resulting image and updates the UI by appending the link to the results container and updating the progress bar and progress text.
+ * Depending on whether the convertOption checkbox is checked, this function either converts the canvas image to WEBP format with a quality of 0.55 or retains the original image format. It then creates a download link for the resulting image and updates the UI by appending the link to the results container and updating the progress bar and progress text.
  *
  * @param {HTMLCanvasElement} canvas - The canvas element containing the image to be processed.
  */
@@ -197,8 +197,8 @@ function processCanvasResult(canvas) {
   let fileFormat;
 
   if (convertOption.checked) {
-    // Convert to WEBP with quality set to 0.25
-    outputData = canvas.toDataURL("image/webp", 0.25);
+    // Convert to WEBP with quality set to 0.55
+    outputData = canvas.toDataURL("image/webp", 0.55);
     fileFormat = { ext: "webp" };
   } else {
     // Keep original format
@@ -294,7 +294,7 @@ function processMultipleFiles() {
         let outputData;
         let fileFormat;
         if (convertOption.checked) {
-          outputData = canvas.toDataURL("image/webp", 0.25);
+          outputData = canvas.toDataURL("image/webp", 0.55);
           fileFormat = { ext: "webp" };
         } else {
           const orig = getOriginalFormat(file.type);
