@@ -194,7 +194,8 @@ function updateUiState() {
 
   const presetButtons = refs.ratioGrid.querySelectorAll(".chip");
   presetButtons.forEach((button) => {
-    button.classList.toggle("disabled", !refs.cropOption.checked || !cropAllowed);
+    button.classList.toggle("disabled", !cropAllowed);
+    button.disabled = !cropAllowed;
   });
 
   updateSupportHint();

@@ -95,6 +95,14 @@ progress {
   color: var(--signal);
 }
 
+.crop-hint {
+  width: 100%;
+  border: 2px solid var(--signal);
+  border-radius: 14px;
+  background: rgba(233, 79, 55, 0.1);
+  padding: 10px 12px;
+}
+
 .picker-row,
 .workflow-head,
 .progress-meta {
