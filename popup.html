@@ -1,69 +1,94 @@
 <!DOCTYPE html>
 <html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop & Convert</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="lib/cropper.min.css">
+  </head>
+  <body>
+    <main class="app">
+      <section class="hero panel">
+        <div class="hero-copy-wrap">
+          <p class="eyebrow">Let's transform your images!</p>
+          <h1>Quick crop and convert.</h1>
+          <p class="hero-copy">Pick files, match common social ratios, and export to the format you actually need.</p>
+        </div>
+        <div class="picker-row">
+          <button id="selectFilesButton" class="primary-btn shine-btn" type="button">Select images</button>
+          <button id="resetButton" class="secondary-btn reset-btn hidden" type="button">Reset</button>
+          <input
+            id="fileInput"
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp,.heic,.heif,image/jpeg,image/png,image/webp,image/heic,image/heif"
+            multiple
+            hidden
+          >
+        </div>
+        <div id="fileSummary" class="file-summary" aria-live="polite">No files selected yet.</div>
+      </section>
 
-<head>
-  <meta charset="UTF-8">
-  <title>Crop & Convert to WEBP</title>
-  <link rel="stylesheet" href="popup.css">
-  <!-- Include Cropper.js local files -->
-  <link rel="stylesheet" href="lib/cropper.min.css">
-</head>
+      <section class="panel">
+        <div class="workflow-head">
+          <div class="panel-heading">
+            <p class="panel-title">Crop preset</p>
+            <p class="panel-copy">Common ratios for Instagram, TikTok, YouTube, Facebook, LinkedIn, and Pinterest.</p>
+            <p id="cropHint" class="crop-hint">Crop works only when exactly one image is selected.</p>
+          </div>
+          <label class="toggle">
+            <input id="cropOption" type="checkbox">
+            <span class="toggle-ui" aria-hidden="true"></span>
+            <span>Crop</span>
+          </label>
+        </div>
+        <div id="ratioGrid" class="ratio-grid" role="radiogroup" aria-label="Crop presets"></div>
+      </section>
 
-<body>
-  <!-- Main container -->
-  <div class="container">
-    <h1>✂️ Crop & Convert 📸</h1>
+      <section class="panel compact-panel">
+        <div class="panel-heading compact-heading">
+          <p class="panel-title">Export format</p>
+          <p class="panel-copy">Same format without crop is blocked.</p>
+        </div>
+        <div id="formatGrid" class="format-grid" role="radiogroup" aria-label="Export formats"></div>
+        <p id="supportHint" class="support-hint" aria-live="polite"></p>
+      </section>
 
-    <!-- Image upload area - handles drag and drop or file input selection -->
-    <div id="drop-area">
-      <p>Arrastra y suelta tus imagen(es) aquí o</p>
-      <input type="file" id="fileInput" accept="image/jpeg,image/png" multiple>
-    </div>
+      <section id="imageContainer" class="panel preview hidden">
+        <div class="panel-heading compact-heading">
+          <p class="panel-title">Preview</p>
+          <p class="panel-copy">Single-image crop preview.</p>
+        </div>
+        <div class="preview-frame">
+          <img id="image" alt="Preview">
+        </div>
+      </section>
 
-    <!-- Processing options - crop and convert checkboxes -->
-    <div class="options">
-      <!-- Crop options with aspect ratio selection -->
-      <div id="cropOptionContainer">
-        <label class="label-flex">
-          <input type="checkbox" id="cropOption">
-          <p>Recortar imagen (1:1 o 16:9)</p>
-        </label>
-        <select id="aspectRatio">
-          <option value="1">Formato cuadrado (Ratio 1:1)</option>
-          <option value="1.7777777778">Formato horizontal (16:9)</option>
-        </select>
-      </div>
-      <br>
-      <!-- Convert to WEBP option (checked by default) -->
-      <label class="label-flex">
-        <input type="checkbox" id="convertOption" checked>
-        <p>Convertir a WEBP</p>
-      </label>
-    </div>
+      <section class="panel actions compact-panel">
+        <button id="processButton" class="primary-btn shine-btn process-btn" type="button">Process files</button>
+        <p id="statusMessage" class="status-message" aria-live="polite"></p>
+        <div id="progressContainer" class="progress hidden" aria-hidden="true">
+          <div class="progress-meta">
+            <span>Progress</span>
+            <span id="progressText">0%</span>
+          </div>
+          <progress id="progressBar" value="0" max="100"></progress>
+        </div>
+      </section>
 
-    <!-- Process button controls -->
-    <div class="controls">
-      <button id="processButton">Procesar</button>
-    </div>
+      <section class="panel results">
+        <div class="panel-heading compact-heading">
+          <p class="panel-title">Downloads</p>
+          <p class="panel-copy">Processed files appear here one by one.</p>
+        </div>
+        <div id="resultsContainer" class="results-list"></div>
+      </section>
+    </main>
 
-    <!-- Progress bar (hidden by default) -->
-    <div id="progressContainer" style="display: none;">
-      <p>Progreso: <span id="progressText">0%</span></p>
-      <progress id="progressBar" value="0" max="100"></progress>
-    </div>
-
-    <!-- Results container for download links -->
-    <div id="resultsContainer"></div>
-
-    <!-- Image preview container (only visible for single files with crop enabled) -->
-    <div class="image-container" id="imageContainer">
-      <img id="image" style="max-width:100%;" alt="Imagen a recortar">
-    </div>
-  </div>
-
-  <!-- JavaScript dependencies -->
-  <script src="lib/cropper.min.js"></script>
-  <script src="popup.js"></script>
-</body>
-
+    <script src="lib/cropper.min.js"></script>
+    <script src="popup.js"></script>
+  </body>
 </html>

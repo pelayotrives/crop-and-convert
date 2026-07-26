@@ -1,409 +1,421 @@
-// Global variables
+const SOCIAL_PRESETS = [
+  { id: "square", ratio: 1, label: "1:1 Square", meta: "Instagram / Facebook", size: "1080 x 1080" },
+  { id: "portrait", ratio: 4 / 5, label: "4:5 Portrait", meta: "Instagram / LinkedIn", size: "1080 x 1350" },
+  { id: "story", ratio: 9 / 16, label: "9:16 Story", meta: "Stories / Reels / TikTok", size: "1080 x 1920" },
+  { id: "landscape", ratio: 16 / 9, label: "16:9 Landscape", meta: "YouTube / X", size: "1280 x 720" },
+  { id: "wide", ratio: 1.91, label: "1.91:1 Wide", meta: "Facebook / LinkedIn shares", size: "1200 x 628" },
+  { id: "pin", ratio: 2 / 3, label: "2:3 Pin", meta: "Pinterest", size: "1000 x 1500" }
+];
+
+const FORMAT_OPTIONS = [
+  { id: "webp", label: "WEBP", mime: "image/webp", ext: "webp", quality: 0.82 },
+  { id: "jpg", label: "JPG", mime: "image/jpeg", ext: "jpg", quality: 0.9 },
+  { id: "png", label: "PNG", mime: "image/png", ext: "png" },
+  { id: "heic", label: "HEIC", mime: "image/heic", ext: "heic" }
+];
+
+const refs = {
+  fileInput: document.getElementById("fileInput"),
+  selectFilesButton: document.getElementById("selectFilesButton"),
+  resetButton: document.getElementById("resetButton"),
+  fileSummary: document.getElementById("fileSummary"),
+  cropOption: document.getElementById("cropOption"),
+  cropHint: document.getElementById("cropHint"),
+  ratioGrid: document.getElementById("ratioGrid"),
+  formatGrid: document.getElementById("formatGrid"),
+  supportHint: document.getElementById("supportHint"),
+  processButton: document.getElementById("processButton"),
+  statusMessage: document.getElementById("statusMessage"),
+  progressContainer: document.getElementById("progressContainer"),
+  progressBar: document.getElementById("progressBar"),
+  progressText: document.getElementById("progressText"),
+  resultsContainer: document.getElementById("resultsContainer"),
+  imageContainer: document.getElementById("imageContainer"),
+  image: document.getElementById("image")
+};
+
 let cropper = null;
 let selectedFiles = [];
+let selectedPresetId = "portrait";
+let selectedFormatId = "webp";
+let previewUrl = "";
 
-// DOM Elements
-const fileInput = document.getElementById("fileInput");
-const dropArea = document.getElementById("drop-area");
-const imageElement = document.getElementById("image");
-const imageContainer = document.getElementById("imageContainer");
-const aspectRatioSelect = document.getElementById("aspectRatio");
-const cropOption = document.getElementById("cropOption");
-const convertOption = document.getElementById("convertOption");
-const processButton = document.getElementById("processButton");
-const progressContainer = document.getElementById("progressContainer");
-const progressBar = document.getElementById("progressBar");
-const progressText = document.getElementById("progressText");
-const resultsContainer = document.getElementById("resultsContainer");
+wireEvents();
+renderPresetGrid();
+renderFormatGrid();
+updateUiState();
 
-// !File handling
+function wireEvents() {
+  refs.selectFilesButton.addEventListener("click", () => refs.fileInput.click());
+  refs.fileInput.addEventListener("change", () => handleFiles(refs.fileInput.files));
+  refs.resetButton.addEventListener("click", resetSelection);
+  refs.cropOption.addEventListener("change", handleCropToggle);
+  refs.processButton.addEventListener("click", () => {
+    processSelection().catch((error) => {
+      console.error(error);
+      showStatus(error instanceof Error ? error.message : "Unexpected processing error.", true);
+      setProgressVisibility(false);
+    });
+  });
+}
 
-/**
- * Handles the selection of files and updates the user interface accordingly.
- *
- * This function converts the provided file list into an array and performs the following:
- * - Clears any previous results displayed in the results container.
- * - Updates the drop area with file details, displaying either a short or full list of file names.
- * - Adds a reset button to allow selection of different files.
- * - Adjusts UI elements based on the number of files:
- *   - For multiple files, disables the cropping feature and hides the image container.
- *   - For a single file, enables the cropping feature and conditionally displays the preview.
- * - Loads and displays an image preview for single file selections, initializing the cropper if cropping is enabled.
- *
- * @param {FileList|Array<File>} files - The list or array of file objects selected by the user.
- */
-function handleFiles(files) {
-  selectedFiles = Array.from(files);
-  resultsContainer.innerHTML = "";
+function renderPresetGrid() {
+  refs.ratioGrid.innerHTML = "";
 
-  // Update drop area with file information
-  if (selectedFiles && selectedFiles.length > 0) {
-    let fileNamesHtml = "<p><strong>Archivos seleccionados:</strong></p>";
-    if (selectedFiles.length <= 3) {
-      fileNamesHtml += '<ul style="text-align: left; margin-top: 5px;">';
-      selectedFiles.forEach((file) => {
-        fileNamesHtml += `<li>${file.name}</li>`;
-      });
-      fileNamesHtml += "</ul>";
-    } else {
-      fileNamesHtml += `<p>${selectedFiles.length} files selected</p>`;
-    }
-
-    // Replace drop area content
-    dropArea.innerHTML = fileNamesHtml;
-
-    // Add reset button
-    const resetButton = document.createElement("button");
-    resetButton.textContent = "Seleccionar archivos diferentes";
-    resetButton.style.marginTop = "10px";
-    resetButton.onclick = resetDropArea;
-    dropArea.appendChild(resetButton);
-  }
-
-  // Handle UI based on number of files selected
-  if (selectedFiles.length > 1) {
-    // Multiple files - disable crop feature
-    cropOption.checked = false;
-    cropOption.disabled = true;
-    aspectRatioSelect.disabled = true;
-    imageContainer.style.display = "none";
-  } else if (selectedFiles.length === 1) {
-    // Single file - enable crop feature
-    cropOption.disabled = false;
-    aspectRatioSelect.disabled = false;
-
-    // Show preview only if crop is enabled
-    if (cropOption.checked) {
-      imageContainer.style.display = "block";
-    } else {
-      imageContainer.style.display = "none";
-    }
-
-    // Load image preview
-    const file = selectedFiles[0];
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      imageElement.src = event.target.result;
-      if (cropOption.checked) {
-        imageElement.onload = initializeCropper;
+  for (const preset of SOCIAL_PRESETS) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `chip ${preset.id === selectedPresetId ? "active" : ""}`.trim();
+    button.dataset.presetId = preset.id;
+    button.innerHTML = `
+      <span class="chip-title">${preset.label}</span>
+      <span class="chip-meta">${preset.meta}</span>
+      <span class="chip-size">${preset.size}</span>
+    `;
+    button.addEventListener("click", () => {
+      if (!canCrop()) return;
+      selectedPresetId = preset.id;
+      renderPresetGrid();
+      if (cropper) {
+        cropper.setAspectRatio(preset.ratio);
       }
-    };
-    reader.readAsDataURL(file);
+    });
+    refs.ratioGrid.append(button);
   }
 }
 
-/**
- * Resets the UI drop area and associated state for image handling.
- *
- * This function clears the current content of the drop area, replacing it with a default template
- * that includes a drag and drop prompt and a file input element configured to accept JPEG and PNG files.
- * It then attaches a change event listener to the new file input, which triggers the file handling logic.
- * Additionally, it clears the list of selected files, hides the image container, and destroys any existing cropper instance.
- */
-function resetDropArea() {
-  dropArea.innerHTML = `
-    <p>Drag and drop your image(s) here or</p>
-    <input type="file" id="fileInput" accept="image/jpeg,image/png" multiple>
-  `;
-  // Re-attach event listener to new file input
-  document.getElementById("fileInput").addEventListener("change", () => {
-    handleFiles(fileInput.files);
+function renderFormatGrid() {
+  refs.formatGrid.innerHTML = "";
+
+  for (const format of FORMAT_OPTIONS) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `chip ${format.id === selectedFormatId ? "active" : ""}`.trim();
+    button.dataset.formatId = format.id;
+    button.innerHTML = `<span class="chip-title">${format.label}</span>`;
+    button.addEventListener("click", () => {
+      selectedFormatId = format.id;
+      renderFormatGrid();
+      updateSupportHint();
+    });
+    refs.formatGrid.append(button);
+  }
+
+  updateSupportHint();
+}
+
+function handleFiles(fileList) {
+  selectedFiles = Array.from(fileList || []);
+  refs.resultsContainer.innerHTML = "";
+  showStatus("");
+
+  if (!selectedFiles.length) {
+    resetSelection();
+    return;
+  }
+
+  refs.resetButton.classList.remove("hidden");
+  refs.fileSummary.innerHTML = buildFileSummary(selectedFiles);
+
+  if (!canCrop()) {
+    refs.cropOption.checked = false;
+  }
+
+  updateUiState();
+}
+
+function handleCropToggle() {
+  if (refs.cropOption.checked && !canCrop()) {
+    refs.cropOption.checked = false;
+    showStatus("Crop is available only when you select a single image.", true);
+  }
+
+  updateUiState();
+}
+
+function buildFileSummary(files) {
+  if (files.length === 1) {
+    return `<strong>${escapeHtml(files[0].name)}</strong> selected.`;
+  }
+
+  const list = files
+    .slice(0, 4)
+    .map((file) => `<span>${escapeHtml(file.name)}</span>`)
+    .join(" · ");
+
+  const extra = files.length > 4 ? ` · +${files.length - 4} more` : "";
+  return `<strong>${files.length} files</strong> selected. ${list}${extra}`;
+}
+
+function resetSelection() {
+  selectedFiles = [];
+  refs.fileInput.value = "";
+  refs.fileSummary.textContent = "No files selected yet.";
+  refs.resetButton.classList.add("hidden");
+  refs.resultsContainer.innerHTML = "";
+  refs.cropOption.checked = false;
+  destroyCropper();
+  clearPreviewUrl();
+  refs.image.removeAttribute("src");
+  refs.imageContainer.classList.add("hidden");
+  setProgressVisibility(false);
+  showStatus("");
+  updateUiState();
+}
+
+function updateUiState() {
+  const cropAllowed = canCrop();
+  refs.cropOption.disabled = !cropAllowed;
+  refs.cropHint.textContent = cropAllowed
+    ? "Crop is ready for this single image selection."
+    : "Crop works only when exactly one image is selected.";
+
+  const shouldPreview = cropAllowed && refs.cropOption.checked;
+  refs.imageContainer.classList.toggle("hidden", !shouldPreview);
+
+  if (shouldPreview) {
+    loadPreview(selectedFiles[0]).catch((error) => {
+      console.error(error);
+      destroyCropper();
+      refs.imageContainer.classList.add("hidden");
+      showStatus(error instanceof Error ? error.message : "Preview unavailable for this file.", true);
+    });
+  } else {
+    destroyCropper();
+    clearPreviewUrl();
+    refs.image.removeAttribute("src");
+  }
+
+  const presetButtons = refs.ratioGrid.querySelectorAll(".chip");
+  presetButtons.forEach((button) => {
+    button.classList.toggle("disabled", !refs.cropOption.checked || !cropAllowed);
   });
 
-  // Reset state
-  selectedFiles = [];
-  imageContainer.style.display = "none";
+  updateSupportHint();
+}
+
+function canCrop() {
+  return selectedFiles.length === 1;
+}
+
+function updateSupportHint() {
+  if (selectedFormatId === "heic" && !isMimeTypeSupported("image/heic")) {
+    refs.supportHint.textContent = "HEIC export depends on browser support. This Chrome build cannot encode it right now.";
+    return;
+  }
+
+  refs.supportHint.textContent = "";
+}
+
+async function loadPreview(file) {
+  clearPreviewUrl();
+  destroyCropper();
+
+  const objectUrl = URL.createObjectURL(file);
+  previewUrl = objectUrl;
+
+  await new Promise((resolve, reject) => {
+    refs.image.onload = () => resolve();
+    refs.image.onerror = () => reject(new Error(`This browser could not preview "${file.name}". HEIC decoding may not be available here.`));
+    refs.image.src = objectUrl;
+  });
+
+  initializeCropper();
+}
+
+function initializeCropper() {
+  destroyCropper();
+  const preset = SOCIAL_PRESETS.find((item) => item.id === selectedPresetId) || SOCIAL_PRESETS[0];
+  cropper = new Cropper(refs.image, {
+    aspectRatio: preset.ratio,
+    viewMode: 1,
+    background: false,
+    autoCropArea: 1
+  });
+}
+
+function destroyCropper() {
   if (cropper) {
     cropper.destroy();
     cropper = null;
   }
 }
 
-// !Cropper functionality
-
-/**
- * Initializes the cropper instance for the image element.
- *
- * This function first checks if there is an existing cropper instance and destroys it if present.
- * It then parses the selected aspect ratio from the aspectRatioSelect input, and creates a new Cropper
- * instance on the imageElement using the parsed ratio and a fixed view mode of 1.
- *
- * @function initializeCropper
- */
-function initializeCropper() {
-  if (cropper) {
-    cropper.destroy();
-  }
-  const ratio = parseFloat(aspectRatioSelect.value);
-  cropper = new Cropper(imageElement, {
-    aspectRatio: ratio,
-    viewMode: 1,
-  });
-}
-
-// !Image processing
-
-/**
- * Simulates a progress bar update by incrementing its value over a specified duration.
- *
- * The progress is increased in steps until it reaches 90%, at which point it stalls,
- * and once the total duration elapses, the provided callback is executed.
- *
- * @param {Function} callback - Function to be called after the progress simulation completes.
- * @param {number} [duration=1000] - Total duration of the progress simulation in milliseconds.
- */
-function simulateProgress(callback, duration = 1000) {
-  let progress = 0;
-  progressBar.value = progress;
-  progressText.textContent = progress + "%";
-
-  const interval = setInterval(() => {
-    progress += 10;
-    if (progress > 90) progress = 90;
-    progressBar.value = progress;
-    progressText.textContent = progress + "%";
-  }, duration / 10);
-
-  setTimeout(() => {
-    clearInterval(interval);
-    callback();
-  }, duration);
-}
-
-/**
- * Returns the original format information for a given image file type.
- *
- * @param {string} fileType - The MIME type of the image (e.g., "image/jpeg" or "image/png").
- * @returns {{ mime: string, ext: string }} An object containing the MIME type and file extension.
- */
-function getOriginalFormat(fileType) {
-  if (fileType === "image/jpeg") {
-    return { mime: "image/jpeg", ext: "jpg" };
-  } else if (fileType === "image/png") {
-    return { mime: "image/png", ext: "png" };
-  }
-  return { mime: "image/png", ext: "png" }; // Default to PNG
-}
-
-/**
- * Processes the given canvas by converting its content into an image data URL.
- *
- * Depending on whether the convertOption checkbox is checked, this function either converts the canvas image to WEBP format with a quality of 0.55 or retains the original image format. It then creates a download link for the resulting image and updates the UI by appending the link to the results container and updating the progress bar and progress text.
- *
- * @param {HTMLCanvasElement} canvas - The canvas element containing the image to be processed.
- */
-function processCanvasResult(canvas) {
-  let outputData;
-  let fileFormat;
-
-  if (convertOption.checked) {
-    // Convert to WEBP with quality set to 0.55
-    outputData = canvas.toDataURL("image/webp", 0.55);
-    fileFormat = { ext: "webp" };
-  } else {
-    // Keep original format
-    const orig = getOriginalFormat(selectedFiles[0].type);
-    outputData = canvas.toDataURL(orig.mime);
-    fileFormat = orig;
-  }
-
-  // Create download link
-  const link = document.createElement("a");
-  link.href = outputData;
-  link.download = "image." + fileFormat.ext;
-  link.textContent = "Descargar resultado";
-  resultsContainer.appendChild(link);
-
-  // Complete progress
-  progressBar.value = 100;
-  progressText.textContent = "100%";
-}
-
-/**
- * Processes a single file by either cropping and converting it or simply converting it based on user selection.
- *
- * When cropping is enabled (checked via the `cropOption`), the function initializes the cropper, waits for it to be ready,
- * simulates a progress indicator, extracts the cropped portion of the image from the cropper as a canvas, and then processes
- * the resulting canvas.
- *
- * If cropping is disabled, the function creates a new canvas element with dimensions matching the natural dimensions of
- * the image (`imageElement`), draws the full image onto the canvas, simulates a progress indicator, and processes the resulting canvas.
- *
- * @function processSingleFileWithCropAndConvert
- */
-function processSingleFileWithCropAndConvert() {
-  if (cropOption.checked) {
-    // Initialize cropper each time we process
-    initializeCropper();
-
-    // Wait for cropper to be ready
-    setTimeout(() => {
-      simulateProgress(() => {
-        const canvas = cropper.getCroppedCanvas();
-        processCanvasResult(canvas);
-      }, 1000);
-    }, 300);
-  } else {
-    // Just convert without cropping
-    simulateProgress(() => {
-      const canvas = document.createElement("canvas");
-      canvas.width = imageElement.naturalWidth;
-      canvas.height = imageElement.naturalHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(imageElement, 0, 0);
-      processCanvasResult(canvas);
-    }, 1000);
+function clearPreviewUrl() {
+  if (previewUrl) {
+    URL.revokeObjectURL(previewUrl);
+    previewUrl = "";
   }
 }
 
-/**
- * Processes multiple image files by reading, optionally converting, and generating download links for each image.
- *
- * The function iterates through each file in the global `selectedFiles` array using FileReader to load each file as a data URL.
- * For every loaded file, an HTMLImageElement is created and, once it loads, it is drawn onto an HTMLCanvasElement.
- * Depending on the state of the global `convertOption` checkbox, the image is converted to a WebP format with low quality or kept in its original format (by using the `getOriginalFormat` function).
- * A download link is then created for the processed image, appended to the global `resultsContainer`, and the progress is updated using the global `progressBar` and `progressText`.
- *
- * Note: This function depends on several globals:
- *   - selectedFiles: Array of File objects to be processed.
- *   - convertOption: Checkbox input element to control image conversion.
- *   - getOriginalFormat: Function that returns an object containing the image mime type and extension for the original file.
- *   - resultsContainer: DOM element where download links will be appended.
- *   - progressBar: Progress bar DOM element to indicate processing progress.
- *   - progressText: DOM element displaying the numeric progress percentage.
- *
- * @function processMultipleFiles
- */
-function processMultipleFiles() {
-  let processedCount = 0;
-  const total = selectedFiles.length;
+async function processSelection() {
+  showStatus("");
 
-  selectedFiles.forEach((file, index) => {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      const img = new Image();
-      img.onload = function () {
-        // Create canvas and process image
-        const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-
-        // Apply conversion if selected
-        let outputData;
-        let fileFormat;
-        if (convertOption.checked) {
-          outputData = canvas.toDataURL("image/webp", 0.55);
-          fileFormat = { ext: "webp" };
-        } else {
-          const orig = getOriginalFormat(file.type);
-          outputData = canvas.toDataURL(orig.mime);
-          fileFormat = orig;
-        }
-
-        // Create download link
-        const link = document.createElement("a");
-        link.href = outputData;
-        link.download = "image_" + (index + 1) + "." + fileFormat.ext;
-        link.textContent = "Descargar imagen " + (index + 1);
-        resultsContainer.appendChild(link);
-
-        // Update progress
-        processedCount++;
-        let percent = Math.round((processedCount / total) * 100);
-        progressBar.value = percent;
-        progressText.textContent = percent + "%";
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-// !Event listeners
-
-/**
- * Event listeners for aspect ratio changes
- */
-aspectRatioSelect.addEventListener("change", () => {
-  if (cropper) {
-    cropper.setAspectRatio(parseFloat(aspectRatioSelect.value));
-  }
-});
-
-/**
- * Event listeners for crop option changes
- */
-cropOption.addEventListener("change", () => {
-  if (cropOption.checked) {
-    if (selectedFiles.length === 1) {
-      imageContainer.style.display = "block";
-      // Initialize cropper if image is already loaded
-      if (imageElement.src && !cropper) {
-        initializeCropper();
-      }
-    }
-  } else {
-    imageContainer.style.display = "none";
-    if (cropper) {
-      cropper.destroy();
-      cropper = null;
-    }
-  }
-});
-
-/**
- * Event listeners for drag and drop functionality
- */
-dropArea.addEventListener("dragover", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  dropArea.classList.add("active");
-});
-
-dropArea.addEventListener("dragleave", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  dropArea.classList.remove("active");
-});
-
-dropArea.addEventListener("drop", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  dropArea.classList.remove("active");
-  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-    handleFiles(e.dataTransfer.files);
-  }
-});
-
-/**
- * Event listener for file selection
- */
-fileInput.addEventListener("change", () => {
-  handleFiles(fileInput.files);
-});
-
-/**
- * Event listener for process button click
- */
-processButton.addEventListener("click", () => {
-  // Validate options
-  if (!cropOption.checked && !convertOption.checked) {
-    alert("Please select at least one function (crop or convert).");
+  if (!selectedFiles.length) {
+    showStatus("Select at least one image first.", true);
     return;
   }
 
-  // Show progress and reset results
-  progressContainer.style.display = "block";
-  progressBar.value = 0;
-  progressText.textContent = "0%";
-  resultsContainer.innerHTML = "";
-
-  // Process based on selected options
-  if (selectedFiles.length === 1 && cropOption.checked) {
-    processSingleFileWithCropAndConvert();
-  } else {
-    processMultipleFiles();
+  const format = getSelectedFormat();
+  if (!format) {
+    showStatus("Choose a valid export format.", true);
+    return;
   }
-});
+
+  if (format.id === "heic" && !isMimeTypeSupported(format.mime)) {
+    showStatus("HEIC export is not available in this Chrome build. Choose WEBP, JPG, or PNG instead.", true);
+    return;
+  }
+
+  validateNoOpConversion(format);
+
+  refs.resultsContainer.innerHTML = "";
+  setProgressVisibility(true);
+  updateProgress(0);
+
+  for (let index = 0; index < selectedFiles.length; index += 1) {
+    const file = selectedFiles[index];
+    const canvas = await buildCanvasForFile(file, index === 0 && canCrop() && refs.cropOption.checked);
+    const blob = await exportCanvas(canvas, format);
+    appendDownloadLink(blob, buildOutputName(file.name, format.ext), index + 1);
+    updateProgress(Math.round(((index + 1) / selectedFiles.length) * 100));
+  }
+
+  showStatus(selectedFiles.length === 1 ? "1 image processed." : `${selectedFiles.length} images processed.`);
+}
+
+function validateNoOpConversion(format) {
+  if (refs.cropOption.checked && canCrop()) return;
+
+  const offenders = selectedFiles.filter((file) => normalizeFileExtension(file) === format.ext);
+  if (!offenders.length) return;
+
+  if (selectedFiles.length === 1) {
+    throw new Error(`"${selectedFiles[0].name}" is already a ${format.label}. Pick another format or enable crop.`);
+  }
+
+  throw new Error(`Some selected files are already ${format.label}. Remove them or choose another target format.`);
+}
+
+async function buildCanvasForFile(file, useCropperCanvas) {
+  if (useCropperCanvas) {
+    if (!cropper) {
+      throw new Error("Crop preview is not ready yet.");
+    }
+
+    return cropper.getCroppedCanvas();
+  }
+
+  const image = await loadImageForProcessing(file);
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const context = canvas.getContext("2d");
+  context.drawImage(image, 0, 0);
+  return canvas;
+}
+
+async function loadImageForProcessing(file) {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    return await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error(`This browser could not decode "${file.name}". HEIC files may depend on OS/browser support.`));
+      image.src = objectUrl;
+    });
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+function exportCanvas(canvas, format) {
+  return new Promise((resolve, reject) => {
+    const quality = typeof format.quality === "number" ? format.quality : undefined;
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error(`Could not export ${format.label}.`));
+        return;
+      }
+
+      if (format.mime !== "image/png" && blob.type !== format.mime) {
+        reject(new Error(`${format.label} export is not supported by this browser.`));
+        return;
+      }
+
+      resolve(blob);
+    }, format.mime, quality);
+  });
+}
+
+function appendDownloadLink(blob, fileName, index) {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.className = "result-link";
+  link.href = objectUrl;
+  link.download = fileName;
+  link.textContent = selectedFiles.length === 1 ? `Download ${fileName}` : `Download file ${index}: ${fileName}`;
+  link.addEventListener("click", () => {
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+  }, { once: true });
+  refs.resultsContainer.append(link);
+}
+
+function buildOutputName(originalName, extension) {
+  const dotIndex = originalName.lastIndexOf(".");
+  const baseName = dotIndex > 0 ? originalName.slice(0, dotIndex) : originalName;
+  return `${baseName}.${extension}`;
+}
+
+function getSelectedFormat() {
+  return FORMAT_OPTIONS.find((item) => item.id === selectedFormatId) || null;
+}
+
+function normalizeFileExtension(file) {
+  const fileName = file.name.toLowerCase();
+  if (fileName.endsWith(".jpeg") || fileName.endsWith(".jpg")) return "jpg";
+  if (fileName.endsWith(".png")) return "png";
+  if (fileName.endsWith(".webp")) return "webp";
+  if (fileName.endsWith(".heic") || fileName.endsWith(".heif")) return "heic";
+
+  const type = file.type.toLowerCase();
+  if (type === "image/jpeg") return "jpg";
+  if (type === "image/png") return "png";
+  if (type === "image/webp") return "webp";
+  if (type === "image/heic" || type === "image/heif") return "heic";
+
+  return "";
+}
+
+function isMimeTypeSupported(mimeType) {
+  const canvas = document.createElement("canvas");
+  return canvas.toDataURL(mimeType).startsWith(`data:${mimeType}`);
+}
+
+function updateProgress(percent) {
+  refs.progressBar.value = percent;
+  refs.progressText.textContent = `${percent}%`;
+}
+
+function setProgressVisibility(isVisible) {
+  refs.progressContainer.classList.toggle("hidden", !isVisible);
+  refs.progressContainer.setAttribute("aria-hidden", isVisible ? "false" : "true");
+  if (!isVisible) {
+    updateProgress(0);
+  }
+}
+
+function showStatus(message, isError = false) {
+  refs.statusMessage.textContent = message;
+  refs.statusMessage.classList.toggle("error", isError);
+}
+
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}

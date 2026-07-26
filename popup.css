@@ -1,152 +1,369 @@
-/* Basic body styling for the popup */
+:root {
+  --paper: #f6f7eb;
+  --signal: #e94f37;
+  --ink: #393e41;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  margin: 10px;
-  width: 350px;
+  margin: 0;
+  width: 400px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Roboto", sans-serif;
 }
 
-/* Container for centering content */
-.container {
-  text-align: center;
+button,
+input,
+progress {
+  font: inherit;
 }
 
-/* Drag and drop area styling with dashed border */
-#drop-area {
-  border: 2px dashed #ccc;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
 }
 
-/* Active state for drag and drop area (when dragging over) */
-#drop-area.active {
-  border-color: #4CAF50;
-  background-color: rgba(76, 175, 80, 0.1);
+.panel {
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  background: var(--paper);
+  padding: 12px;
 }
 
-/* File input button spacing */
-#fileInput {
-  margin-top: 10px;
-}
-
-/* Options section with controls for crop and convert */
-#cropOptionContainer {
+.hero {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-#cropOptionContainer,
-#cropOptionContainer select {
-  width: 100%;
+.hero-copy-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.label-flex {
+.eyebrow {
+  margin: 0;
+  color: var(--signal);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.02;
+}
+
+.hero-copy,
+.panel-copy,
+.file-summary,
+.status-message,
+.support-hint,
+.crop-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.panel-heading {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.compact-heading {
+  gap: 2px;
+}
+
+.panel-title {
+  margin: 0;
+  color: var(--signal);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.crop-hint,
+.support-hint,
+.status-message.error {
+  color: var(--signal);
+}
+
+.picker-row,
+.workflow-head,
+.progress-meta {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
-.label-flex p {
-  margin: 0;
-}
-
-.options {
-  margin-bottom: 10px;
-  padding: 24px;
-  background-color: #ECECEC;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
+.workflow-head {
   align-items: flex-start;
 }
 
-/* Image container for preview (hidden by default) */
-.image-container {
-  max-height: 300px;
+.primary-btn,
+.secondary-btn {
+  position: relative;
   overflow: hidden;
-  margin-bottom: 12px;
-  margin: 20px 0;
-  display: none;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  min-height: 36px;
+  padding: 0 14px;
+  cursor: pointer;
+  transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
 }
 
-/* Control buttons styling */
-.controls button {
-  padding: 12px 24px;
-  margin-bottom: 10px;
+.primary-btn {
+  background: var(--signal);
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 700;
 }
 
-/* Main process button styling */
-#processButton {
-  background-color: #686868;
-  margin-top: 12px;
-  color: white;
-  border: none;
-  border-radius: 4px;
+.secondary-btn {
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.shine-btn::after,
+.reset-btn::after {
+  content: "";
+  position: absolute;
+  inset: -30% auto -30% -35%;
+  width: 34%;
+  background: linear-gradient(100deg, rgba(246, 247, 235, 0), rgba(246, 247, 235, 0.55), rgba(246, 247, 235, 0));
+  transform: translateX(-180%) skewX(-18deg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.reset-btn::after {
+  background: linear-gradient(100deg, rgba(233, 79, 55, 0), rgba(233, 79, 55, 0.28), rgba(233, 79, 55, 0));
+}
+
+.primary-btn:hover,
+.secondary-btn:hover,
+.chip:hover,
+.result-link:hover {
+  transform: translateY(-1px);
+}
+
+.shine-btn:hover::after,
+.reset-btn:hover::after {
+  opacity: 1;
+  transform: translateX(380%) skewX(-18deg);
+  transition: transform 0.6s ease, opacity 0.2s ease;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-ui {
+  position: relative;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 24px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+}
+
+.toggle-ui::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: transform 0.18s ease, background-color 0.18s ease;
+}
+
+.toggle input:checked + .toggle-ui {
+  background: var(--signal);
+}
+
+.toggle input:checked + .toggle-ui::after {
+  transform: translateX(18px);
+  background: var(--paper);
+}
+
+.ratio-grid,
+.format-grid {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.ratio-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.format-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.chip {
+  width: 100%;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 8px 9px;
+  text-align: left;
   cursor: pointer;
 }
 
-/* Hover state for process button */
-#processButton:hover {
-  background-color: #a8a8a8;
+.chip.active {
+  background: var(--signal);
+  color: var(--paper);
 }
 
-/* Progress bar styling */
-progress {
-  width: 100%;
-  height: 20px;
+.chip.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-/* Results container for download links */
-#resultsContainer {
-  margin: 15px 0;
-  padding: 20px;
-  border-radius: 12px;
-  border: 2px dashed #ccc;
-  min-height: 50px;
-  transition: all 0.3s ease;
+.chip-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chip-meta,
+.chip-size,
+.chip-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.format-grid .chip {
+  padding: 8px 4px;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.format-grid .chip-title {
+  font-size: 11px;
+}
+
+.format-grid .chip-note {
+  display: none;
+}
+
+.compact-panel .support-hint,
+.compact-panel .status-message {
+  margin-top: 6px;
+}
+
+.preview.hidden {
+  display: none;
+}
+
+.preview-frame {
+  display: grid;
+  place-items: center;
+  margin-top: 10px;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--paper);
+  min-height: 180px;
+  max-height: 230px;
+  padding: 10px;
+}
+
+.preview-frame img {
+  display: block;
+  max-width: min(100%, 250px);
+  max-height: 190px;
+  margin: 0 auto;
+}
+
+.actions {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
 }
 
-/* Placeholder text for empty results container */
-#resultsContainer:empty::before {
-  content: "Aquí aparecerán tus enlaces de descarga";
-  color: #888;
-  font-style: italic;
+.process-btn {
+  width: 100%;
 }
 
-/* Styling for download links */
-#resultsContainer a {
+.progress {
+  margin-top: 8px;
+}
+
+.progress.hidden {
+  display: none;
+}
+
+.progress-meta {
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+progress {
+  width: 100%;
+  height: 12px;
+  accent-color: var(--signal);
+}
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  min-height: 52px;
+}
+
+.results-list:empty::before {
+  content: "No exports yet.";
   display: block;
-  width: 80%;
-  margin: 8px 0;
-  padding: 16px;
-  background: #0184ff;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 4px;
+  border: 2px dashed var(--ink);
+  border-radius: 16px;
+  padding: 14px;
+  color: var(--ink);
+  font-size: 12px;
   text-align: center;
-  transition: background-color 0.2s;
 }
 
-/* Hover state for download links */
-#resultsContainer a:hover {
-  background: #2993f7;
-}
-
-/* Additional image container styling */
-.image-container {
-  max-height: 300px;
-  overflow: auto;
-  margin: 20px 0;
-  padding: 10px;
-  border: 1px solid #eee;
-  border-radius: 4px;
+.result-link {
+  display: block;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  padding: 10px 12px;
+  background: var(--signal);
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
 }
