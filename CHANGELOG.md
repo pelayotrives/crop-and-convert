@@ -1,44 +1,39 @@
 # Changelog
 
-All notable changes to Crop & Convert to WEBP are documented in this file.
+All notable changes to Crop & Convert are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [1.1.0]
+## [0.0.1]
 
 ### Added
 
-- **Batch processing**: handle multiple image files at once, with per-image download links and progress tracking.
-- **Drag and drop support**: drag images directly onto the drop area instead of using the file picker.
-- **Visual progress bar** with percentage indicator during processing.
-- **Reset button** to clear the current selection and pick different files without reloading the popup.
-- **Active drop-zone highlight** on dragover (green border + background tint).
+- **Export format picker** for `WEBP`, `JPG`, and `PNG`.
+- **Social-media crop presets** for square, portrait, story, landscape, wide, and Pinterest ratios.
+- **Batch processing** with per-image download links and progress tracking.
+- **Download all as ZIP** for multi-file exports, with a generated archive name like `crop_and_convert_YYYY_MM_DD_HH_MM.zip`.
+- **Single-image crop preview** powered by Cropper.js.
+- **Structured file summary list** when multiple images are selected.
+- **Reset button** to clear the current selection without reloading the popup.
+- Icons in 4 sizes (`16`, `32`, `48`, `128`).
 
 ### Changed
 
-- Flattened project structure (moved `lib/`, `popup.*`, `icons/` to the extension root).
-- README rewritten in English with installation instructions and permission notes.
-- UI refinements: grey background panel for options, dashed border for results container, placeholder text when empty.
+- Redesigned the popup into a tighter single-flow interface with a unified **Process and download** section.
+- Simplified source import to **file selection only**; drag and drop was removed.
+- Standardized chips, alerts, spacing, hover states, and download actions across the popup.
+- `Download all` now creates a single ZIP instead of triggering many individual downloads.
+- Project structure was flattened so `lib/`, `popup.*`, and `icons/` live at the extension root.
+- README was rewritten in English with installation instructions and permission notes.
 
 ### Fixed
 
-- Cropper properly destroyed and reinitialized on aspect ratio changes and file resets.
-- Crop option automatically disabled and preview hidden when multiple files are selected.
+- Prevented no-op exports when the target format matches the original file format and crop is not enabled.
+- Improved disabled/enabled states for crop controls and ratio chips depending on the current selection.
+- Standardized processing errors so they use the same alert style as crop warnings.
+- Reduced empty layout gaps in the process/download area when no status or results are present.
+- Cropper is properly destroyed and reinitialized on ratio changes and file resets.
+- Fixed SonarQube issues in the ZIP generation helpers.
 
----
-
-## [1.0.0]
-
-### Added
-
-- **Initial release** of Crop & Convert to WEBP (Chrome MV3).
-- **Crop images** to two aspect ratios: 1:1 (square) and 16:9 (landscape) via Cropper.js.
-- **Convert JPG/PNG to WEBP** with configurable quality (0.55).
-- **Independent workflows**: crop and convert can be used separately or together.
-- **Single-file preview** with interactive cropper when crop is enabled.
-- **Download links** generated client-side — no server needed.
-- **Zero permissions required** — fully client-side processing via Canvas API.
-- **Cropper.js** bundled locally (`lib/cropper.min.js`, `lib/cropper.min.css`).
-- Icons in 4 sizes (16, 32, 48, 128).
