@@ -74,6 +74,8 @@ progress {
 
 .panel-heading {
   display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
   flex-direction: column;
   gap: 4px;
 }
@@ -96,6 +98,7 @@ progress {
 }
 
 .crop-hint {
+  display: block;
   width: 100%;
   border: 2px solid var(--signal);
   border-radius: 14px;
@@ -114,6 +117,10 @@ progress {
 
 .workflow-head {
   align-items: flex-start;
+}
+
+.workflow-head > .toggle {
+  flex: 0 0 auto;
 }
 
 .primary-btn,
@@ -240,7 +247,7 @@ progress {
 }
 
 .format-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .chip {

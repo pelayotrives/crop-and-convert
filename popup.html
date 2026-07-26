@@ -23,10 +23,19 @@
         <button id="selectFilesButton" class="primary-btn shine-btn" type="button">Select images</button>
         <button id="resetButton" class="secondary-btn reset-btn hidden" type="button">Reset</button>
         <input id="fileInput" type="file" aria-label="Select images"
-          accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif" multiple
+          accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple
           hidden>
       </div>
       <div id="fileSummary" class="file-summary" aria-live="polite">No files selected yet.</div>
+    </section>
+
+    <section class="panel compact-panel">
+      <div class="panel-heading compact-heading">
+        <p class="panel-title">Export format</p>
+        <p class="panel-copy">Same format without crop is blocked.</p>
+      </div>
+      <div id="formatGrid" class="format-grid" role="radiogroup" aria-label="Export formats"></div>
+      <p id="supportHint" class="support-hint" aria-live="polite"></p>
     </section>
 
     <section class="panel">
@@ -43,15 +52,6 @@
         </label>
       </div>
       <div id="ratioGrid" class="ratio-grid" role="radiogroup" aria-label="Crop presets"></div>
-    </section>
-
-    <section class="panel compact-panel">
-      <div class="panel-heading compact-heading">
-        <p class="panel-title">Export format</p>
-        <p class="panel-copy">Same format without crop is blocked.</p>
-      </div>
-      <div id="formatGrid" class="format-grid" role="radiogroup" aria-label="Export formats"></div>
-      <p id="supportHint" class="support-hint" aria-live="polite"></p>
     </section>
 
     <section id="imageContainer" class="panel preview hidden">

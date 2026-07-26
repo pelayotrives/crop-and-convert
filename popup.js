@@ -1,4 +1,4 @@
-const SOCIAL_PRESETS = [
+const social_presets = [
   { id: "square", ratio: 1, label: "1:1 Square", meta: "Instagram / Facebook", size: "1080 x 1080" },
   { id: "portrait", ratio: 4 / 5, label: "4:5 Portrait", meta: "Instagram / LinkedIn", size: "1080 x 1350" },
   { id: "story", ratio: 9 / 16, label: "9:16 Story", meta: "Stories / Reels / TikTok", size: "1080 x 1920" },
@@ -7,11 +7,10 @@ const SOCIAL_PRESETS = [
   { id: "pin", ratio: 2 / 3, label: "2:3 Pin", meta: "Pinterest", size: "1000 x 1500" }
 ];
 
-const FORMAT_OPTIONS = [
+const format_opts = [
   { id: "webp", label: "WEBP", mime: "image/webp", ext: "webp", quality: 0.82 },
   { id: "jpg", label: "JPG", mime: "image/jpeg", ext: "jpg", quality: 0.9 },
-  { id: "png", label: "PNG", mime: "image/png", ext: "png" },
-  { id: "avif", label: "AVIF", mime: "image/avif", ext: "avif" }
+  { id: "png", label: "PNG", mime: "image/png", ext: "png" }
 ];
 
 const refs = {
@@ -62,7 +61,7 @@ function wireEvents() {
 function renderPresetGrid() {
   refs.ratioGrid.innerHTML = "";
 
-  for (const preset of SOCIAL_PRESETS) {
+  for (const preset of social_presets) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `chip ${preset.id === selectedPresetId ? "active" : ""}`.trim();
@@ -87,7 +86,7 @@ function renderPresetGrid() {
 function renderFormatGrid() {
   refs.formatGrid.innerHTML = "";
 
-  for (const format of FORMAT_OPTIONS) {
+  for (const format of format_opts) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `chip ${format.id === selectedFormatId ? "active" : ""}`.trim();
@@ -206,11 +205,6 @@ function canCrop() {
 }
 
 function updateSupportHint() {
-  if (selectedFormatId === "avif" && !isMimeTypeSupported("image/avif")) {
-    refs.supportHint.textContent = "AVIF export depends on browser support. This Chrome build cannot encode it right now.";
-    return;
-  }
-
   refs.supportHint.textContent = "";
 }
 
@@ -223,7 +217,7 @@ async function loadPreview(file) {
 
   await new Promise((resolve, reject) => {
     refs.image.onload = () => resolve();
-    refs.image.onerror = () => reject(new Error(`This browser could not preview "${file.name}". AVIF decoding may not be available here.`));
+    refs.image.onerror = () => reject(new Error(`This browser could not preview "${file.name}".`));
     refs.image.src = objectUrl;
   });
 
@@ -232,7 +226,7 @@ async function loadPreview(file) {
 
 function initializeCropper() {
   destroyCropper();
-  const preset = SOCIAL_PRESETS.find((item) => item.id === selectedPresetId) || SOCIAL_PRESETS[0];
+  const preset = social_presets.find((item) => item.id === selectedPresetId) || social_presets[0];
   cropper = new Cropper(refs.image, {
     aspectRatio: preset.ratio,
     viewMode: 1,
@@ -266,11 +260,6 @@ async function processSelection() {
   const format = getSelectedFormat();
   if (!format) {
     showStatus("Choose a valid export format.", true);
-    return;
-  }
-
-  if (format.id === "avif" && !isMimeTypeSupported(format.mime)) {
-    showStatus("AVIF export is not available in this Chrome build. Choose WEBP, JPG, or PNG instead.", true);
     return;
   }
 
@@ -329,7 +318,7 @@ async function loadImageForProcessing(file) {
     return await new Promise((resolve, reject) => {
       const image = new Image();
       image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error(`This browser could not decode "${file.name}". AVIF files may depend on browser support.`));
+      image.onerror = () => reject(new Error(`This browser could not decode "${file.name}".`));
       image.src = objectUrl;
     });
   } finally {
@@ -376,7 +365,7 @@ function buildOutputName(originalName, extension) {
 }
 
 function getSelectedFormat() {
-  return FORMAT_OPTIONS.find((item) => item.id === selectedFormatId) || null;
+  return format_opts.find((item) => item.id === selectedFormatId) || null;
 }
 
 function normalizeFileExtension(file) {
@@ -384,13 +373,11 @@ function normalizeFileExtension(file) {
   if (fileName.endsWith(".jpeg") || fileName.endsWith(".jpg")) return "jpg";
   if (fileName.endsWith(".png")) return "png";
   if (fileName.endsWith(".webp")) return "webp";
-  if (fileName.endsWith(".avif")) return "avif";
 
   const type = file.type.toLowerCase();
   if (type === "image/jpeg") return "jpg";
   if (type === "image/png") return "png";
   if (type === "image/webp") return "webp";
-  if (type === "image/avif") return "avif";
 
   return "";
 }
