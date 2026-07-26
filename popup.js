@@ -130,6 +130,10 @@ function handleCropToggle() {
     showStatus("Crop is available only when you select a single image.", true);
   }
 
+  if (canCrop()) {
+    showStatus("");
+  }
+
   updateUiState();
 }
 
@@ -166,9 +170,11 @@ function resetSelection() {
 function updateUiState() {
   const cropAllowed = canCrop();
   refs.cropOption.disabled = !cropAllowed;
-  refs.cropHint.textContent = cropAllowed
-    ? "Crop is ready for this single image selection."
-    : "Crop works only when exactly one image is selected.";
+  const toggleLabel = refs.cropOption.closest(".toggle");
+  if (toggleLabel) {
+    toggleLabel.classList.toggle("disabled", !cropAllowed);
+  }
+  refs.cropHint.classList.toggle("hidden", cropAllowed || selectedFiles.length <= 1);
 
   const shouldPreview = cropAllowed && refs.cropOption.checked;
   refs.imageContainer.classList.toggle("hidden", !shouldPreview);
