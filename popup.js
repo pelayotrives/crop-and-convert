@@ -29,6 +29,7 @@ const refs = {
   progressBar: document.getElementById("progressBar"),
   progressText: document.getElementById("progressText"),
   resultsContainer: document.getElementById("resultsContainer"),
+  downloadAllButton: document.getElementById("downloadAllButton"),
   imageContainer: document.getElementById("imageContainer"),
   image: document.getElementById("image")
 };
@@ -43,6 +44,7 @@ wireEvents();
 renderPresetGrid();
 renderFormatGrid();
 updateUiState();
+updateDownloadAllVisibility();
 
 function wireEvents() {
   refs.selectFilesButton.addEventListener("click", () => refs.fileInput.click());
@@ -56,6 +58,7 @@ function wireEvents() {
       setProgressVisibility(false);
     });
   });
+  refs.downloadAllButton.addEventListener("click", downloadAllResults);
 }
 
 function renderPresetGrid() {
@@ -107,6 +110,7 @@ function handleFiles(fileList) {
   selectedFiles = Array.from(fileList || []);
   refs.resultsContainer.innerHTML = "";
   showStatus("");
+  updateDownloadAllVisibility();
 
   if (!selectedFiles.length) {
     resetSelection();
@@ -163,6 +167,7 @@ function resetSelection() {
   refs.imageContainer.classList.add("hidden");
   setProgressVisibility(false);
   showStatus("");
+  updateDownloadAllVisibility();
   updateUiState();
 }
 
@@ -266,6 +271,7 @@ async function processSelection() {
   validateNoOpConversion(format);
 
   refs.resultsContainer.innerHTML = "";
+  updateDownloadAllVisibility();
   setProgressVisibility(true);
   updateProgress(0);
 
@@ -277,6 +283,7 @@ async function processSelection() {
     updateProgress(Math.round(((index + 1) / selectedFiles.length) * 100));
   }
 
+  updateDownloadAllVisibility();
   showStatus(selectedFiles.length === 1 ? "1 image processed." : `${selectedFiles.length} images processed.`);
 }
 
@@ -358,6 +365,20 @@ function appendDownloadLink(blob, fileName, index) {
   refs.resultsContainer.append(link);
 }
 
+function updateDownloadAllVisibility() {
+  const resultLinks = refs.resultsContainer.querySelectorAll(".result-link");
+  refs.downloadAllButton.classList.toggle("hidden", resultLinks.length <= 1);
+}
+
+function downloadAllResults() {
+  const resultLinks = Array.from(refs.resultsContainer.querySelectorAll(".result-link"));
+  resultLinks.forEach((link, index) => {
+    window.setTimeout(() => {
+      link.click();
+    }, index * 150);
+  });
+}
+
 function buildOutputName(originalName, extension) {
   const dotIndex = originalName.lastIndexOf(".");
   const baseName = dotIndex > 0 ? originalName.slice(0, dotIndex) : originalName;
@@ -380,11 +401,6 @@ function normalizeFileExtension(file) {
   if (type === "image/webp") return "webp";
 
   return "";
-}
-
-function isMimeTypeSupported(mimeType) {
-  const canvas = document.createElement("canvas");
-  return canvas.toDataURL(mimeType).startsWith(`data:${mimeType}`);
 }
 
 function updateProgress(percent) {

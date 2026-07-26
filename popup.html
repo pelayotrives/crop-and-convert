@@ -43,7 +43,6 @@
         <div class="panel-heading">
           <p class="panel-title">Crop preset</p>
           <p class="panel-copy">Common ratios for Instagram, TikTok, YouTube, Facebook, LinkedIn, and Pinterest.</p>
-          <p id="cropHint" class="crop-hint hidden">Crop works only when exactly one image is selected.</p>
         </div>
         <label class="toggle">
           <input id="cropOption" type="checkbox">
@@ -52,6 +51,7 @@
         </label>
       </div>
       <div id="ratioGrid" class="ratio-grid" role="radiogroup" aria-label="Crop presets"></div>
+      <p id="cropHint" class="crop-hint hidden">Crop works only when exactly one image is selected.</p>
     </section>
 
     <section id="imageContainer" class="panel preview hidden">
@@ -81,6 +81,7 @@
         <p class="panel-title">Downloads</p>
         <p class="panel-copy">Processed files appear here one by one.</p>
       </div>
+      <button id="downloadAllButton" class="download-all-btn shine-btn hidden" type="button">Download all</button>
       <div id="resultsContainer" class="results-list"></div>
     </section>
   </main>
