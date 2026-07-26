@@ -11,7 +11,7 @@ const FORMAT_OPTIONS = [
   { id: "webp", label: "WEBP", mime: "image/webp", ext: "webp", quality: 0.82 },
   { id: "jpg", label: "JPG", mime: "image/jpeg", ext: "jpg", quality: 0.9 },
   { id: "png", label: "PNG", mime: "image/png", ext: "png" },
-  { id: "heic", label: "HEIC", mime: "image/heic", ext: "heic" }
+  { id: "avif", label: "AVIF", mime: "image/avif", ext: "avif" }
 ];
 
 const refs = {
@@ -205,8 +205,8 @@ function canCrop() {
 }
 
 function updateSupportHint() {
-  if (selectedFormatId === "heic" && !isMimeTypeSupported("image/heic")) {
-    refs.supportHint.textContent = "HEIC export depends on browser support. This Chrome build cannot encode it right now.";
+  if (selectedFormatId === "avif" && !isMimeTypeSupported("image/avif")) {
+    refs.supportHint.textContent = "AVIF export depends on browser support. This Chrome build cannot encode it right now.";
     return;
   }
 
@@ -222,7 +222,7 @@ async function loadPreview(file) {
 
   await new Promise((resolve, reject) => {
     refs.image.onload = () => resolve();
-    refs.image.onerror = () => reject(new Error(`This browser could not preview "${file.name}". HEIC decoding may not be available here.`));
+    refs.image.onerror = () => reject(new Error(`This browser could not preview "${file.name}". AVIF decoding may not be available here.`));
     refs.image.src = objectUrl;
   });
 
@@ -268,8 +268,8 @@ async function processSelection() {
     return;
   }
 
-  if (format.id === "heic" && !isMimeTypeSupported(format.mime)) {
-    showStatus("HEIC export is not available in this Chrome build. Choose WEBP, JPG, or PNG instead.", true);
+  if (format.id === "avif" && !isMimeTypeSupported(format.mime)) {
+    showStatus("AVIF export is not available in this Chrome build. Choose WEBP, JPG, or PNG instead.", true);
     return;
   }
 
@@ -328,7 +328,7 @@ async function loadImageForProcessing(file) {
     return await new Promise((resolve, reject) => {
       const image = new Image();
       image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error(`This browser could not decode "${file.name}". HEIC files may depend on OS/browser support.`));
+      image.onerror = () => reject(new Error(`This browser could not decode "${file.name}". AVIF files may depend on browser support.`));
       image.src = objectUrl;
     });
   } finally {
@@ -383,13 +383,13 @@ function normalizeFileExtension(file) {
   if (fileName.endsWith(".jpeg") || fileName.endsWith(".jpg")) return "jpg";
   if (fileName.endsWith(".png")) return "png";
   if (fileName.endsWith(".webp")) return "webp";
-  if (fileName.endsWith(".heic") || fileName.endsWith(".heif")) return "heic";
+  if (fileName.endsWith(".avif")) return "avif";
 
   const type = file.type.toLowerCase();
   if (type === "image/jpeg") return "jpg";
   if (type === "image/png") return "png";
   if (type === "image/webp") return "webp";
-  if (type === "image/heic" || type === "image/heif") return "heic";
+  if (type === "image/avif") return "avif";
 
   return "";
 }
