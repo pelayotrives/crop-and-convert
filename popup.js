@@ -39,6 +39,7 @@ let selectedFiles = [];
 let selectedPresetId = "portrait";
 let selectedFormatId = "webp";
 let previewUrl = "";
+let processedDownloads = [];
 
 wireEvents();
 renderPresetGrid();
@@ -56,9 +57,16 @@ function wireEvents() {
       console.error(error);
       showStatus(error instanceof Error ? error.message : "Unexpected processing error.", true);
       setProgressVisibility(false);
+      resetDownloadAllButton();
     });
   });
-  refs.downloadAllButton.addEventListener("click", downloadAllResults);
+  refs.downloadAllButton.addEventListener("click", () => {
+    downloadAllResults().catch((error) => {
+      console.error(error);
+      showStatus(error instanceof Error ? error.message : "Could not prepare the ZIP file.", true);
+      resetDownloadAllButton();
+    });
+  });
 }
 
 function renderPresetGrid() {
@@ -109,6 +117,7 @@ function renderFormatGrid() {
 function handleFiles(fileList) {
   selectedFiles = Array.from(fileList || []);
   refs.resultsContainer.innerHTML = "";
+  processedDownloads = [];
   showStatus("");
   updateDownloadAllVisibility();
 
@@ -156,6 +165,7 @@ function buildFileSummary(files) {
 
 function resetSelection() {
   selectedFiles = [];
+  processedDownloads = [];
   refs.fileInput.value = "";
   refs.fileSummary.textContent = "No files selected yet.";
   refs.resetButton.classList.add("hidden");
@@ -167,6 +177,7 @@ function resetSelection() {
   refs.imageContainer.classList.add("hidden");
   setProgressVisibility(false);
   showStatus("");
+  resetDownloadAllButton();
   updateDownloadAllVisibility();
   updateUiState();
 }
@@ -271,6 +282,8 @@ async function processSelection() {
   validateNoOpConversion(format);
 
   refs.resultsContainer.innerHTML = "";
+  processedDownloads = [];
+  resetDownloadAllButton();
   updateDownloadAllVisibility();
   setProgressVisibility(true);
   updateProgress(0);
@@ -279,7 +292,9 @@ async function processSelection() {
     const file = selectedFiles[index];
     const canvas = await buildCanvasForFile(file, index === 0 && canCrop() && refs.cropOption.checked);
     const blob = await exportCanvas(canvas, format);
-    appendDownloadLink(blob, buildOutputName(file.name, format.ext), index + 1);
+    const fileName = buildOutputName(file.name, format.ext);
+    processedDownloads.push({ blob, fileName });
+    appendDownloadLink(blob, fileName, index + 1);
     updateProgress(Math.round(((index + 1) / selectedFiles.length) * 100));
   }
 
@@ -366,17 +381,24 @@ function appendDownloadLink(blob, fileName, index) {
 }
 
 function updateDownloadAllVisibility() {
-  const resultLinks = refs.resultsContainer.querySelectorAll(".result-link");
-  refs.downloadAllButton.classList.toggle("hidden", resultLinks.length <= 1);
+  refs.downloadAllButton.classList.toggle("hidden", processedDownloads.length <= 1);
 }
 
-function downloadAllResults() {
-  const resultLinks = Array.from(refs.resultsContainer.querySelectorAll(".result-link"));
-  resultLinks.forEach((link, index) => {
-    window.setTimeout(() => {
-      link.click();
-    }, index * 150);
-  });
+async function downloadAllResults() {
+  if (processedDownloads.length <= 1) return;
+
+  refs.downloadAllButton.disabled = true;
+  refs.downloadAllButton.textContent = "Preparing ZIP...";
+
+  const zipBlob = await buildZipBlob(processedDownloads);
+  const zipName = buildZipName(new Date());
+  triggerBlobDownload(zipBlob, zipName);
+  resetDownloadAllButton();
+}
+
+function resetDownloadAllButton() {
+  refs.downloadAllButton.disabled = false;
+  refs.downloadAllButton.textContent = "Download all";
 }
 
 function buildOutputName(originalName, extension) {
@@ -419,6 +441,139 @@ function setProgressVisibility(isVisible) {
 function showStatus(message, isError = false) {
   refs.statusMessage.textContent = message;
   refs.statusMessage.classList.toggle("error", isError);
+}
+
+async function buildZipBlob(entries) {
+  const fileEntries = await Promise.all(entries.map(async ({ fileName, blob }) => {
+    const data = new Uint8Array(await blob.arrayBuffer());
+    const fileNameBytes = new TextEncoder().encode(fileName);
+    const crc = crc32(data);
+    const timestamp = new Date();
+    const { dosTime, dosDate } = toDosDateTime(timestamp);
+
+    return {
+      fileName,
+      fileNameBytes,
+      data,
+      crc,
+      dosTime,
+      dosDate
+    };
+  }));
+
+  let offset = 0;
+  const localParts = [];
+  const centralParts = [];
+
+  for (const entry of fileEntries) {
+    const localHeader = createLocalFileHeader(entry);
+    localParts.push(localHeader, entry.fileNameBytes, entry.data);
+
+    const centralHeader = createCentralDirectoryHeader(entry, offset);
+    centralParts.push(centralHeader, entry.fileNameBytes);
+
+    offset += localHeader.length + entry.fileNameBytes.length + entry.data.length;
+  }
+
+  const centralDirectorySize = centralParts.reduce((total, part) => total + part.length, 0);
+  const endRecord = createEndOfCentralDirectoryRecord(fileEntries.length, centralDirectorySize, offset);
+
+  return new Blob([...localParts, ...centralParts, endRecord], { type: "application/zip" });
+}
+
+function createLocalFileHeader(entry) {
+  const header = new Uint8Array(30);
+  const view = new DataView(header.buffer);
+  view.setUint32(0, 0x04034b50, true);
+  view.setUint16(4, 20, true);
+  view.setUint16(6, 0, true);
+  view.setUint16(8, 0, true);
+  view.setUint16(10, entry.dosTime, true);
+  view.setUint16(12, entry.dosDate, true);
+  view.setUint32(14, entry.crc, true);
+  view.setUint32(18, entry.data.length, true);
+  view.setUint32(22, entry.data.length, true);
+  view.setUint16(26, entry.fileNameBytes.length, true);
+  view.setUint16(28, 0, true);
+  return header;
+}
+
+function createCentralDirectoryHeader(entry, localHeaderOffset) {
+  const header = new Uint8Array(46);
+  const view = new DataView(header.buffer);
+  view.setUint32(0, 0x02014b50, true);
+  view.setUint16(4, 20, true);
+  view.setUint16(6, 20, true);
+  view.setUint16(8, 0, true);
+  view.setUint16(10, 0, true);
+  view.setUint16(12, entry.dosTime, true);
+  view.setUint16(14, entry.dosDate, true);
+  view.setUint32(16, entry.crc, true);
+  view.setUint32(20, entry.data.length, true);
+  view.setUint32(24, entry.data.length, true);
+  view.setUint16(28, entry.fileNameBytes.length, true);
+  view.setUint16(30, 0, true);
+  view.setUint16(32, 0, true);
+  view.setUint16(34, 0, true);
+  view.setUint16(36, 0, true);
+  view.setUint32(38, 0, true);
+  view.setUint32(42, localHeaderOffset, true);
+  return header;
+}
+
+function createEndOfCentralDirectoryRecord(entryCount, centralDirectorySize, centralDirectoryOffset) {
+  const footer = new Uint8Array(22);
+  const view = new DataView(footer.buffer);
+  view.setUint32(0, 0x06054b50, true);
+  view.setUint16(4, 0, true);
+  view.setUint16(6, 0, true);
+  view.setUint16(8, entryCount, true);
+  view.setUint16(10, entryCount, true);
+  view.setUint32(12, centralDirectorySize, true);
+  view.setUint32(16, centralDirectoryOffset, true);
+  view.setUint16(20, 0, true);
+  return footer;
+}
+
+function buildZipName(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `crop_and_convert_${year}_${month}_${day}_${hours}_${minutes}.zip`;
+}
+
+function triggerBlobDownload(blob, fileName) {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = fileName;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+}
+
+function toDosDateTime(date) {
+  const year = Math.max(1980, date.getFullYear());
+  const dosTime = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
+  const dosDate = ((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
+  return { dosTime, dosDate };
+}
+
+function crc32(bytes) {
+  let crc = 0xffffffff;
+
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) {
+      const mask = -(crc & 1);
+      crc = (crc >>> 1) ^ (0xedb88320 & mask);
+    }
+  }
+
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
 function escapeHtml(value) {
