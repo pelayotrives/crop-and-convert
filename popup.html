@@ -64,7 +64,11 @@
       </div>
     </section>
 
-    <section class="panel actions compact-panel">
+    <section class="panel output-panel compact-panel">
+      <div class="panel-heading compact-heading">
+        <p class="panel-title">Process and download</p>
+        <p class="panel-copy">Process files and download them one by one or all at once.</p>
+      </div>
       <button id="processButton" class="primary-btn shine-btn process-btn" type="button">Process files</button>
       <p id="statusMessage" class="status-message" aria-live="polite"></p>
       <div id="progressContainer" class="progress hidden" aria-hidden="true">
@@ -74,14 +78,7 @@
         </div>
         <progress id="progressBar" value="0" max="100"></progress>
       </div>
-    </section>
-
-    <section class="panel results">
-      <div class="panel-heading compact-heading">
-        <p class="panel-title">Downloads</p>
-        <p class="panel-copy">Processed files appear here one by one.</p>
-      </div>
-      <button id="downloadAllButton" class="download-all-btn shine-btn hidden" type="button">Download all</button>
+      <button id="downloadAllButton" class="download-all-btn hidden" type="button">Download all</button>
       <div id="resultsContainer" class="results-list"></div>
     </section>
   </main>

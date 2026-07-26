@@ -92,7 +92,7 @@ function renderFormatGrid() {
   for (const format of format_opts) {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `chip ${format.id === selectedFormatId ? "active" : ""}`.trim();
+    button.className = `chip format-chip ${format.id === selectedFormatId ? "active" : ""}`.trim();
     button.dataset.formatId = format.id;
     button.innerHTML = `<span class="chip-title">${format.label}</span>`;
     button.addEventListener("click", () => {
@@ -145,13 +145,13 @@ function buildFileSummary(files) {
     return `<strong>${escapeHtml(files[0].name)}</strong> selected.`;
   }
 
-  const list = files
+  const listItems = files
     .slice(0, 4)
-    .map((file) => `<span>${escapeHtml(file.name)}</span>`)
-    .join(" · ");
+    .map((file) => `<li>${escapeHtml(file.name)}</li>`)
+    .join("");
 
-  const extra = files.length > 4 ? ` · +${files.length - 4} more` : "";
-  return `<strong>${files.length} files</strong> selected. ${list}${extra}`;
+  const extra = files.length > 4 ? `<li>+${files.length - 4} more</li>` : "";
+  return `<strong>${files.length} files</strong> selected:<ul class="file-summary-list">${listItems}${extra}</ul>`;
 }
 
 function resetSelection() {
