@@ -63,6 +63,25 @@ const social_preset_groups = [
       { id: "yt-banner", label: "Channel banner", meta: "Header", width: 2560, height: 1440 },
       { id: "yt-profile", label: "Profile photo", meta: "Avatar", width: 800, height: 800 }
     ]
+  },
+  {
+    id: "bluesky",
+    label: "Bluesky",
+    presets: [
+      { id: "bsky-post-square", label: "Post square", meta: "Single image", width: 1080, height: 1080 },
+      { id: "bsky-post-portrait", label: "Post portrait", meta: "Single image", width: 1000, height: 1250 },
+      { id: "bsky-banner", label: "Profile banner", meta: "Banner", width: 1500, height: 500 },
+      { id: "bsky-profile", label: "Profile photo", meta: "Avatar", width: 400, height: 400 }
+    ]
+  },
+  {
+    id: "snapchat",
+    label: "Snapchat",
+    presets: [
+      { id: "snap-story", label: "Story / Spotlight", meta: "Vertical", width: 1080, height: 1920 },
+      { id: "snap-cover", label: "Public profile cover", meta: "Cover", width: 1080, height: 1920 },
+      { id: "snap-profile", label: "Public profile photo", meta: "Avatar", width: 400, height: 400 }
+    ]
   }
 ];
 
