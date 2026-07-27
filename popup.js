@@ -1,10 +1,69 @@
-const social_presets = [
-  { id: "square", ratio: 1, label: "1:1 Square", meta: "Instagram / Facebook", size: "1080 x 1080" },
-  { id: "portrait", ratio: 4 / 5, label: "4:5 Portrait", meta: "Instagram / LinkedIn", size: "1080 x 1350" },
-  { id: "story", ratio: 9 / 16, label: "9:16 Story", meta: "Stories / Reels / TikTok", size: "1080 x 1920" },
-  { id: "landscape", ratio: 16 / 9, label: "16:9 Landscape", meta: "YouTube / X", size: "1280 x 720" },
-  { id: "wide", ratio: 1.91, label: "1.91:1 Wide", meta: "Facebook / LinkedIn shares", size: "1200 x 628" },
-  { id: "pin", ratio: 2 / 3, label: "2:3 Pin", meta: "Pinterest", size: "1000 x 1500" }
+const social_preset_groups = [
+  {
+    id: "instagram",
+    label: "Instagram",
+    presets: [
+      { id: "ig-post-square", label: "Feed square", meta: "Post", width: 1080, height: 1080 },
+      { id: "ig-post-portrait", label: "Feed portrait", meta: "Post", width: 1080, height: 1350 },
+      { id: "ig-story-reel", label: "Story / Reel", meta: "Vertical", width: 1080, height: 1920 },
+      { id: "ig-reel-cover", label: "Reel cover", meta: "Cover", width: 420, height: 654 }
+    ]
+  },
+  {
+    id: "facebook",
+    label: "Facebook",
+    presets: [
+      { id: "fb-feed-post", label: "Feed post", meta: "Shared image", width: 1200, height: 630 },
+      { id: "fb-page-cover", label: "Page cover", meta: "Cover", width: 851, height: 315 },
+      { id: "fb-page-profile", label: "Page profile", meta: "Profile photo", width: 320, height: 320 }
+    ]
+  },
+  {
+    id: "linkedin",
+    label: "LinkedIn",
+    presets: [
+      { id: "li-feed-post", label: "Feed post", meta: "Landscape", width: 1200, height: 627 },
+      { id: "li-profile-cover", label: "Profile cover", meta: "Header", width: 1584, height: 396 },
+      { id: "li-profile-photo", label: "Profile photo", meta: "Avatar", width: 400, height: 400 }
+    ]
+  },
+  {
+    id: "x",
+    label: "X",
+    presets: [
+      { id: "x-post-wide", label: "Post wide", meta: "Single image", width: 1600, height: 900 },
+      { id: "x-post-tall", label: "Post tall", meta: "Single image", width: 1200, height: 1500 },
+      { id: "x-header", label: "Header", meta: "Banner", width: 1500, height: 500 },
+      { id: "x-profile", label: "Profile photo", meta: "Avatar", width: 400, height: 400 }
+    ]
+  },
+  {
+    id: "tiktok",
+    label: "TikTok",
+    presets: [
+      { id: "tt-post-vertical", label: "Photo post", meta: "Vertical", width: 1080, height: 1920 },
+      { id: "tt-square-cover", label: "Carousel cover", meta: "Square", width: 1080, height: 1080 },
+      { id: "tt-profile-photo", label: "Profile photo", meta: "Avatar", width: 400, height: 400 }
+    ]
+  },
+  {
+    id: "pinterest",
+    label: "Pinterest",
+    presets: [
+      { id: "pin-image", label: "Image Pin", meta: "Standard", width: 1000, height: 1500 },
+      { id: "pin-cover", label: "Profile cover", meta: "Header", width: 800, height: 450 },
+      { id: "pin-profile", label: "Profile photo", meta: "Avatar", width: 400, height: 400 }
+    ]
+  },
+  {
+    id: "youtube",
+    label: "YouTube",
+    presets: [
+      { id: "yt-thumbnail", label: "Thumbnail", meta: "Video preview", width: 3840, height: 2160 },
+      { id: "yt-banner", label: "Channel banner", meta: "Header", width: 2560, height: 1440 },
+      { id: "yt-profile", label: "Profile photo", meta: "Avatar", width: 800, height: 800 }
+    ]
+  }
 ];
 
 const format_opts = [
@@ -20,6 +79,7 @@ const refs = {
   fileSummary: document.getElementById("fileSummary"),
   cropOption: document.getElementById("cropOption"),
   cropHint: document.getElementById("cropHint"),
+  socialGrid: document.getElementById("socialGrid"),
   ratioGrid: document.getElementById("ratioGrid"),
   formatGrid: document.getElementById("formatGrid"),
   supportHint: document.getElementById("supportHint"),
@@ -36,12 +96,14 @@ const refs = {
 
 let cropper = null;
 let selectedFiles = [];
-let selectedPresetId = "portrait";
+let selectedPlatformId = social_preset_groups[0].id;
+let selectedPresetId = social_preset_groups[0].presets[0].id;
 let selectedFormatId = "webp";
 let previewUrl = "";
 let processedDownloads = [];
 
 wireEvents();
+renderPlatformGrid();
 renderPresetGrid();
 renderFormatGrid();
 updateUiState();
@@ -69,10 +131,33 @@ function wireEvents() {
   });
 }
 
+function renderPlatformGrid() {
+  refs.socialGrid.innerHTML = "";
+
+  for (const platform of social_preset_groups) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `chip platform-chip ${platform.id === selectedPlatformId ? "active" : ""}`.trim();
+    button.dataset.platformId = platform.id;
+    button.innerHTML = `<span class="chip-title">${platform.label}</span>`;
+    button.addEventListener("click", () => {
+      selectedPlatformId = platform.id;
+      selectedPresetId = platform.presets[0].id;
+      renderPlatformGrid();
+      renderPresetGrid();
+      if (cropper) {
+        cropper.setAspectRatio(getSelectedPreset().width / getSelectedPreset().height);
+      }
+    });
+    refs.socialGrid.append(button);
+  }
+}
+
 function renderPresetGrid() {
   refs.ratioGrid.innerHTML = "";
+  const platform = getSelectedPlatform();
 
-  for (const preset of social_presets) {
+  for (const preset of platform.presets) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `chip ${preset.id === selectedPresetId ? "active" : ""}`.trim();
@@ -80,14 +165,14 @@ function renderPresetGrid() {
     button.innerHTML = `
       <span class="chip-title">${preset.label}</span>
       <span class="chip-meta">${preset.meta}</span>
-      <span class="chip-size">${preset.size}</span>
+      <span class="chip-size">${preset.width} x ${preset.height}</span>
     `;
     button.addEventListener("click", () => {
       if (!canCrop()) return;
       selectedPresetId = preset.id;
       renderPresetGrid();
       if (cropper) {
-        cropper.setAspectRatio(preset.ratio);
+        cropper.setAspectRatio(preset.width / preset.height);
       }
     });
     refs.ratioGrid.append(button);
@@ -242,9 +327,9 @@ async function loadPreview(file) {
 
 function initializeCropper() {
   destroyCropper();
-  const preset = social_presets.find((item) => item.id === selectedPresetId) || social_presets[0];
+  const preset = getSelectedPreset();
   cropper = new Cropper(refs.image, {
-    aspectRatio: preset.ratio,
+    aspectRatio: preset.width / preset.height,
     viewMode: 1,
     background: false,
     autoCropArea: 1
@@ -321,7 +406,13 @@ async function buildCanvasForFile(file, useCropperCanvas) {
       throw new Error("Crop preview is not ready yet.");
     }
 
-    return cropper.getCroppedCanvas();
+    const preset = getSelectedPreset();
+    return cropper.getCroppedCanvas({
+      width: preset.width,
+      height: preset.height,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: "high"
+    });
   }
 
   const image = await loadImageForProcessing(file);
@@ -405,6 +496,15 @@ function buildOutputName(originalName, extension) {
   const dotIndex = originalName.lastIndexOf(".");
   const baseName = dotIndex > 0 ? originalName.slice(0, dotIndex) : originalName;
   return `${baseName}.${extension}`;
+}
+
+function getSelectedPlatform() {
+  return social_preset_groups.find((item) => item.id === selectedPlatformId) || social_preset_groups[0];
+}
+
+function getSelectedPreset() {
+  const platform = getSelectedPlatform();
+  return platform.presets.find((item) => item.id === selectedPresetId) || platform.presets[0];
 }
 
 function getSelectedFormat() {

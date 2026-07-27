@@ -259,11 +259,16 @@ progress {
   background: var(--paper);
 }
 
+.social-grid,
 .ratio-grid,
 .format-grid {
   display: grid;
   gap: 7px;
   margin-top: 10px;
+}
+
+.social-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .ratio-grid {
@@ -289,8 +294,14 @@ progress {
   box-shadow: 0 0 0 rgba(57, 62, 65, 0);
 }
 
+.platform-chip,
 .format-chip {
   text-align: center;
+}
+
+.platform-chip .chip-title,
+.format-chip .chip-title {
+  margin: 0;
 }
 
 .chip.active {
