@@ -120,6 +120,11 @@ progress {
   margin-top: 10px;
 }
 
+#cropStatusMessage {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
 .picker-row,
 .workflow-head,
 .progress-meta {
@@ -215,6 +220,7 @@ progress {
   gap: 8px;
   font-size: 12px;
   font-weight: 500;
+  cursor: pointer;
 }
 
 .toggle.disabled {
@@ -277,6 +283,41 @@ progress {
 
 .format-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.custom-size-panel {
+  margin-top: 10px;
+}
+
+.custom-size-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.custom-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.custom-field input {
+  width: 100%;
+  min-height: 38px;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0 10px;
+  outline: none;
+}
+
+.custom-field input:focus {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 2px rgba(233, 79, 55, 0.12);
 }
 
 .chip {

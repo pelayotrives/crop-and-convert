@@ -39,6 +39,7 @@
     </section>
 
     <section class="panel">
+      <p id="cropStatusMessage" class="crop-hint hidden" aria-live="polite"></p>
       <div class="workflow-head">
         <div class="panel-heading">
           <p class="panel-title">Crop preset</p>
@@ -52,6 +53,22 @@
       </div>
       <div id="socialGrid" class="social-grid" role="radiogroup" aria-label="Social platforms"></div>
       <div id="ratioGrid" class="ratio-grid" role="radiogroup" aria-label="Platform presets"></div>
+      <div id="customSizePanel" class="custom-size-panel hidden">
+        <div class="panel-heading compact-heading">
+          <p class="panel-title">Custom size</p>
+          <p class="panel-copy">Set any width and height you want.</p>
+        </div>
+        <div class="custom-size-grid">
+          <label class="custom-field" for="customWidthInput">
+            <span>Width</span>
+            <input id="customWidthInput" type="number" min="1" step="1" inputmode="numeric" />
+          </label>
+          <label class="custom-field" for="customHeightInput">
+            <span>Height</span>
+            <input id="customHeightInput" type="number" min="1" step="1" inputmode="numeric" />
+          </label>
+        </div>
+      </div>
       <p id="cropHint" class="crop-hint hidden">Crop works only when exactly one image is selected.</p>
     </section>
 

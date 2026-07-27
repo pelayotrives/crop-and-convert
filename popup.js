@@ -1,3 +1,8 @@
+const custom_group_id = "custom";
+const custom_preset_id = "custom-size";
+const preferences_storage_key = "crop_convert_preferences";
+const default_custom_size = { width: 1080, height: 1080 };
+
 const social_preset_groups = [
   {
     id: "instagram",
@@ -82,6 +87,13 @@ const social_preset_groups = [
       { id: "snap-cover", label: "Public profile cover", meta: "Cover", width: 1080, height: 1920 },
       { id: "snap-profile", label: "Public profile photo", meta: "Avatar", width: 400, height: 400 }
     ]
+  },
+  {
+    id: custom_group_id,
+    label: "Custom",
+    presets: [
+      { id: custom_preset_id, label: "Custom size", meta: "Manual", width: default_custom_size.width, height: default_custom_size.height }
+    ]
   }
 ];
 
@@ -98,8 +110,12 @@ const refs = {
   fileSummary: document.getElementById("fileSummary"),
   cropOption: document.getElementById("cropOption"),
   cropHint: document.getElementById("cropHint"),
+  cropStatusMessage: document.getElementById("cropStatusMessage"),
   socialGrid: document.getElementById("socialGrid"),
   ratioGrid: document.getElementById("ratioGrid"),
+  customSizePanel: document.getElementById("customSizePanel"),
+  customWidthInput: document.getElementById("customWidthInput"),
+  customHeightInput: document.getElementById("customHeightInput"),
   formatGrid: document.getElementById("formatGrid"),
   supportHint: document.getElementById("supportHint"),
   processButton: document.getElementById("processButton"),
@@ -118,21 +134,36 @@ let selectedFiles = [];
 let selectedPlatformId = social_preset_groups[0].id;
 let selectedPresetId = social_preset_groups[0].presets[0].id;
 let selectedFormatId = "webp";
+let customSize = { ...default_custom_size };
 let previewUrl = "";
 let processedDownloads = [];
+let isSyncingFromCropper = false;
 
-wireEvents();
-renderPlatformGrid();
-renderPresetGrid();
-renderFormatGrid();
-updateUiState();
-updateDownloadAllVisibility();
+void initializeApp();
+
+async function initializeApp() {
+  wireEvents();
+  await loadPreferences();
+  renderPlatformGrid();
+  renderPresetGrid();
+  renderFormatGrid();
+  updateCustomSizeInputs();
+  updateUiState();
+  updateDownloadAllVisibility();
+}
 
 function wireEvents() {
   refs.selectFilesButton.addEventListener("click", () => refs.fileInput.click());
   refs.fileInput.addEventListener("change", () => handleFiles(refs.fileInput.files));
   refs.resetButton.addEventListener("click", resetSelection);
   refs.cropOption.addEventListener("change", handleCropToggle);
+  refs.cropOption.closest(".toggle")?.addEventListener("click", handleCropToggleAttempt);
+  refs.customWidthInput.addEventListener("input", handleCustomSizeInput);
+  refs.customHeightInput.addEventListener("input", handleCustomSizeInput);
+  refs.customWidthInput.addEventListener("blur", commitCustomSizeInputs);
+  refs.customHeightInput.addEventListener("blur", commitCustomSizeInputs);
+  refs.customWidthInput.addEventListener("change", commitCustomSizeInputs);
+  refs.customHeightInput.addEventListener("change", commitCustomSizeInputs);
   refs.processButton.addEventListener("click", () => {
     processSelection().catch((error) => {
       console.error(error);
@@ -164,9 +195,12 @@ function renderPlatformGrid() {
       selectedPresetId = platform.presets[0].id;
       renderPlatformGrid();
       renderPresetGrid();
+      updateCustomSizeInputs();
+      updateUiState();
       if (cropper) {
-        cropper.setAspectRatio(getSelectedPreset().width / getSelectedPreset().height);
+        cropper.setAspectRatio(getCropAspectRatio());
       }
+      void savePreferences();
     });
     refs.socialGrid.append(button);
   }
@@ -175,6 +209,10 @@ function renderPlatformGrid() {
 function renderPresetGrid() {
   refs.ratioGrid.innerHTML = "";
   const platform = getSelectedPlatform();
+
+  if (platform.id === custom_group_id) {
+    return;
+  }
 
   for (const preset of platform.presets) {
     const button = document.createElement("button");
@@ -191,8 +229,9 @@ function renderPresetGrid() {
       selectedPresetId = preset.id;
       renderPresetGrid();
       if (cropper) {
-        cropper.setAspectRatio(preset.width / preset.height);
+        cropper.setAspectRatio(getCropAspectRatio());
       }
+      void savePreferences();
     });
     refs.ratioGrid.append(button);
   }
@@ -211,6 +250,7 @@ function renderFormatGrid() {
       selectedFormatId = format.id;
       renderFormatGrid();
       updateSupportHint();
+      void savePreferences();
     });
     refs.formatGrid.append(button);
   }
@@ -223,6 +263,7 @@ function handleFiles(fileList) {
   refs.resultsContainer.innerHTML = "";
   processedDownloads = [];
   showStatus("");
+  showCropStatus("");
   updateDownloadAllVisibility();
 
   if (!selectedFiles.length) {
@@ -243,14 +284,68 @@ function handleFiles(fileList) {
 function handleCropToggle() {
   if (refs.cropOption.checked && !canCrop()) {
     refs.cropOption.checked = false;
-    showStatus("Crop is available only when you select a single image.", true);
+    showCropStatus("Crop is available only when you select a single image.");
   }
 
   if (canCrop()) {
-    showStatus("");
+    showCropStatus("");
   }
 
   updateUiState();
+  void savePreferences();
+}
+
+function handleCropToggleAttempt(event) {
+  if (!refs.cropOption.disabled) return;
+
+  event.preventDefault();
+
+  if (!selectedFiles.length) {
+    showCropStatus("Select an image first to enable crop.");
+    return;
+  }
+
+  if (selectedFiles.length > 1) {
+    showCropStatus("Crop is available only when you select a single image.");
+  }
+}
+
+function handleCustomSizeInput() {
+  if (isSyncingFromCropper) {
+    return;
+  }
+
+  const width = tryParseCustomDimension(refs.customWidthInput.value);
+  const height = tryParseCustomDimension(refs.customHeightInput.value);
+
+  if (!width || !height) {
+    return;
+  }
+
+  customSize = { width, height };
+  updateCustomPreset();
+  renderPresetGrid();
+  if (cropper && isCustomPlatformSelected()) {
+    cropper.setAspectRatio(getCropAspectRatio());
+  }
+  void savePreferences();
+}
+
+function commitCustomSizeInputs() {
+  if (isSyncingFromCropper) {
+    return;
+  }
+
+  const width = normalizeCustomDimension(refs.customWidthInput.value, customSize.width);
+  const height = normalizeCustomDimension(refs.customHeightInput.value, customSize.height);
+  customSize = { width, height };
+  updateCustomPreset();
+  updateCustomSizeInputs();
+  renderPresetGrid();
+  if (cropper && isCustomPlatformSelected()) {
+    cropper.setAspectRatio(getCropAspectRatio());
+  }
+  void savePreferences();
 }
 
 function buildFileSummary(files) {
@@ -281,6 +376,7 @@ function resetSelection() {
   refs.imageContainer.classList.add("hidden");
   setProgressVisibility(false);
   showStatus("");
+  showCropStatus("");
   resetDownloadAllButton();
   updateDownloadAllVisibility();
   updateUiState();
@@ -294,6 +390,8 @@ function updateUiState() {
     toggleLabel.classList.toggle("disabled", !cropAllowed);
   }
   refs.cropHint.classList.toggle("hidden", cropAllowed || selectedFiles.length <= 1);
+  refs.customSizePanel.classList.toggle("hidden", !isCustomPlatformSelected());
+  refs.ratioGrid.classList.toggle("hidden", isCustomPlatformSelected());
 
   const shouldPreview = cropAllowed && refs.cropOption.checked;
   refs.imageContainer.classList.toggle("hidden", !shouldPreview);
@@ -311,10 +409,18 @@ function updateUiState() {
     refs.image.removeAttribute("src");
   }
 
+  const cropControlsEnabled = cropAllowed && refs.cropOption.checked;
+
+  const platformButtons = refs.socialGrid.querySelectorAll(".chip");
+  platformButtons.forEach((button) => {
+    button.classList.toggle("disabled", !cropControlsEnabled);
+    button.disabled = !cropControlsEnabled;
+  });
+
   const presetButtons = refs.ratioGrid.querySelectorAll(".chip");
   presetButtons.forEach((button) => {
-    button.classList.toggle("disabled", !cropAllowed);
-    button.disabled = !cropAllowed;
+    button.classList.toggle("disabled", !cropControlsEnabled);
+    button.disabled = !cropControlsEnabled;
   });
 
   updateSupportHint();
@@ -326,6 +432,23 @@ function canCrop() {
 
 function updateSupportHint() {
   refs.supportHint.textContent = "";
+}
+
+function updateCustomPreset() {
+  const customGroup = social_preset_groups.find((group) => group.id === custom_group_id);
+  if (!customGroup) return;
+  customGroup.presets[0] = {
+    id: custom_preset_id,
+    label: "Custom size",
+    meta: "Manual",
+    width: customSize.width,
+    height: customSize.height
+  };
+}
+
+function updateCustomSizeInputs() {
+  refs.customWidthInput.value = String(customSize.width);
+  refs.customHeightInput.value = String(customSize.height);
 }
 
 async function loadPreview(file) {
@@ -346,12 +469,31 @@ async function loadPreview(file) {
 
 function initializeCropper() {
   destroyCropper();
-  const preset = getSelectedPreset();
   cropper = new Cropper(refs.image, {
-    aspectRatio: preset.width / preset.height,
+    aspectRatio: getCropAspectRatio(),
     viewMode: 1,
     background: false,
-    autoCropArea: 1
+    autoCropArea: 1,
+    crop(event) {
+      if (!isCustomPlatformSelected()) {
+        return;
+      }
+
+      const width = Math.max(1, Math.round(event.detail.width));
+      const height = Math.max(1, Math.round(event.detail.height));
+
+      if (width === customSize.width && height === customSize.height) {
+        return;
+      }
+
+      isSyncingFromCropper = true;
+      customSize = { width, height };
+      updateCustomPreset();
+      refs.customWidthInput.value = String(width);
+      refs.customHeightInput.value = String(height);
+      isSyncingFromCropper = false;
+      void savePreferences();
+    }
   });
 }
 
@@ -526,8 +668,21 @@ function getSelectedPreset() {
   return platform.presets.find((item) => item.id === selectedPresetId) || platform.presets[0];
 }
 
+function getCropAspectRatio() {
+  if (isCustomPlatformSelected()) {
+    return Number.NaN;
+  }
+
+  const preset = getSelectedPreset();
+  return preset.width / preset.height;
+}
+
 function getSelectedFormat() {
   return format_opts.find((item) => item.id === selectedFormatId) || null;
+}
+
+function isCustomPlatformSelected() {
+  return selectedPlatformId === custom_group_id;
 }
 
 function normalizeFileExtension(file) {
@@ -542,6 +697,18 @@ function normalizeFileExtension(file) {
   if (type === "image/webp") return "webp";
 
   return "";
+}
+
+function tryParseCustomDimension(value) {
+  const trimmed = String(value).trim();
+  if (!trimmed) return null;
+  const parsed = Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return null;
+  return parsed;
+}
+
+function normalizeCustomDimension(value, fallback) {
+  return tryParseCustomDimension(value) ?? fallback;
 }
 
 function updateProgress(percent) {
@@ -560,6 +727,71 @@ function setProgressVisibility(isVisible) {
 function showStatus(message, isError = false) {
   refs.statusMessage.textContent = message;
   refs.statusMessage.classList.toggle("error", isError);
+}
+
+function showCropStatus(message) {
+  refs.cropStatusMessage.textContent = message;
+  refs.cropStatusMessage.classList.toggle("hidden", !message);
+}
+
+async function loadPreferences() {
+  const storage = globalThis.chrome?.storage?.local;
+  if (!storage) return;
+
+  try {
+    const result = await storage.get(preferences_storage_key);
+    const saved = result?.[preferences_storage_key];
+    if (!saved || typeof saved !== "object") return;
+
+    if (typeof saved.customWidth === "number" && saved.customWidth >= 1) {
+      customSize.width = saved.customWidth;
+    }
+    if (typeof saved.customHeight === "number" && saved.customHeight >= 1) {
+      customSize.height = saved.customHeight;
+    }
+    updateCustomPreset();
+
+    if (typeof saved.platformId === "string" && social_preset_groups.some((group) => group.id === saved.platformId)) {
+      selectedPlatformId = saved.platformId;
+    }
+
+    const platform = getSelectedPlatform();
+    if (typeof saved.presetId === "string" && platform.presets.some((preset) => preset.id === saved.presetId)) {
+      selectedPresetId = saved.presetId;
+    } else {
+      selectedPresetId = platform.presets[0].id;
+    }
+
+    if (typeof saved.formatId === "string" && format_opts.some((format) => format.id === saved.formatId)) {
+      selectedFormatId = saved.formatId;
+    }
+
+    if (typeof saved.cropEnabled === "boolean") {
+      refs.cropOption.checked = saved.cropEnabled;
+    }
+  } catch (error) {
+    console.warn("Could not load preferences.", error);
+  }
+}
+
+async function savePreferences() {
+  const storage = globalThis.chrome?.storage?.local;
+  if (!storage) return;
+
+  try {
+    await storage.set({
+      [preferences_storage_key]: {
+        platformId: selectedPlatformId,
+        presetId: selectedPresetId,
+        formatId: selectedFormatId,
+        cropEnabled: refs.cropOption.checked,
+        customWidth: customSize.width,
+        customHeight: customSize.height
+      }
+    });
+  } catch (error) {
+    console.warn("Could not save preferences.", error);
+  }
 }
 
 async function buildZipBlob(entries) {
