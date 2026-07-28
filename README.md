@@ -1,13 +1,16 @@
 # Crop & Convert (Chrome MV3)
 
-Lightweight image processing tool. Crop images to 1:1 or 16:9 and convert JPG/PNG to **WEBP**, individually or in batch.
+Lightweight image-prep extension for Chrome. Crop images to common social-media sizes or a fully custom size, then export them as **WEBP**, **JPG**, or **PNG** directly from the popup.
 
 ## What it does
 
-- Crop images to two different formats: 1:1 (square) and 16:9 (landscape)
-- Convert JPG and PNG files to WEBP format to optimize size and quality
-- Batch processing: handle multiple images at once
-- Independent workflows: crop and convert without requiring both steps
+- Choose ready-made presets for `Instagram`, `Facebook`, `LinkedIn`, `X`, `TikTok`, `Pinterest`, `YouTube`, `Bluesky`, and `Snapchat`
+- Use a **Custom** mode with manual width and height inputs
+- Crop a single image with live preview
+- Convert images to `WEBP`, `JPG`, or `PNG`
+- Batch-process multiple files at once
+- Download processed files individually or as a single ZIP
+- Remember the last selected platform, preset, format, crop toggle, and custom dimensions
 
 ## Structure
 
@@ -30,6 +33,6 @@ Lightweight image processing tool. Crop images to 1:1 or 16:9 and convert JPG/PN
 
 ## Permissions Used
 
-- None. The extension works fully client-side with no special permissions required.
+- `storage`: used only to remember the user's last selected platform, preset, export format, crop toggle state, and custom size values.
 
-> This extension is under development and is not yet available in the Chrome Web Store.
+> All image processing runs locally in the browser. No accounts, uploads, or external services are required.
