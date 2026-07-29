@@ -23,16 +23,12 @@ Lightweight image-prep extension for Chrome. Crop images to common social-media 
   - `cropper.min.js`
 - `icons/`
 
-## Local Installation
-
-1. Open `chrome://extensions/`
-2. Enable **Developer mode**
-3. Click **Load unpacked**
-4. Select the `crop-and-convert` folder
-5. The Crop & Convert icon will appear in the toolbar
-
 ## Permissions Used
 
 - `storage`: used only to remember the user's last selected platform, preset, export format, crop toggle state, and custom size values.
 
 > All image processing runs locally in the browser. No accounts, uploads, or external services are required.
+
+## Status
+
+[Now available on Chrome Web Store](https://chromewebstore.google.com/detail/crop-convert/ikjkgiblokpgjfmkmogedlfdhkigicpb)
