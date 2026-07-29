@@ -4,7 +4,7 @@ Lightweight image-prep extension for Chrome. Crop images to common social-media 
 
 ## What it does
 
-- Choose ready-made presets for `Instagram`, `Facebook`, `LinkedIn`, `X`, `TikTok`, `Pinterest`, `YouTube`, `Bluesky`, and `Snapchat`
+- Choose ready-made presets for popular social, creator, and profile image formats
 - Use a **Custom** mode with manual width and height inputs
 - Crop a single image with live preview
 - Convert images to `WEBP`, `JPG`, or `PNG`
